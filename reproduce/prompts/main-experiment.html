@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Main experiment prompt · Measuring what a document teaches a model</title>
+<meta name="description" content="The prompt for the agent that ran the 30-paper experiment on OLMo-2-13B and DeepSeek-V3.1 end to end, from item selection to the report.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a class="active" href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Main experiment prompt</h1>
+      <p class="summary">The prompt for the agent that ran the 30-paper experiment on OLMo-2-13B and DeepSeek-V3.1 end to end, from item selection to the report.</p>
+<p>The main experiment tested the method on 30 fresh papers and two model families at a matched light dose. One agent
+ran it end to end in its own worktree. It selected the items, fetched the texts, made counterfactual copies by script,
+had subagents write probes under a frozen protocol, calibrated the dose, committed a pre-registration before any test
+output, ran OLMo lanes on RunPod and DeepSeek runs on Tinker, and wrote the analysis and the report. James approved it
+with a hard cap of $90.</p>
+<p>One step of the original prompt concerned a private document; it is removed and marked in place. How the prompts were edited is explained on the <a href="index.html">catalog page</a>.</p>
+<h3 id="115-main-experiment-30-papers-olmo-2-13b-and-deepseek-v31">115 · Main experiment: 30 papers, OLMo-2-13B and DeepSeek-V3.1<a class="headerlink" href="#115-main-experiment-30-papers-olmo-2-13b-and-deepseek-v31" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-21 00:39 UTC, in its own git worktree.</em> <strong>What it did.</strong> Everything above, with four pre-specified hypotheses: open equals frontier (H-A), anticipation (H-B), truth (H-C) and unique contribution (H-D). <strong>What it produced.</strong> <code>planning/MAIN_EXPERIMENT_PREREG.md</code> (committed at <code>55e9ca4</code>, before any test output), <code>planning/MAIN_EXPERIMENT_REPORT.md</code>, numbers under <code>runs/phase1c/main_exp/</code>, the code in <code>src/cpappraise/mainexp/</code> and <code>scripts/main_exp/</code>, tests and lane configs. The verdicts:</p>
+<ul>
+<li>the two models agreed on which papers contribute most in three of four tiers (rank correlations 0.68 to 0.75); the belief tier disagreed;</li>
+<li>each paper made its own citing paper more predictable, in both models;</li>
+<li>the models learned which claims a paper makes, but later papers&rsquo; text did not tell the true version from an altered one;</li>
+<li>a paper kept a recall gain beyond three related papers by other authors.</li>
+</ul>
+<p>Spend: Tinker $39.35 (estimate), RunPod $3.68. See the <a href="../../briefings/07-main-experiment.html">briefing</a>.</p>
+<pre><code class="language-text">You are running the MAIN EXPERIMENT of James Barnes's appraisal project (main repo &lt;repo&gt;, master; you are in your own git worktree from current master, which contains every pipeline built on 2026-10-20). James approved it. HARD CAP $90 total (Tinker at most $65, RunPod at most $25); estimate the cost before every spend stage and stop if a cap would be exceeded.
+
+NORTH STAR (James): &quot;a believable way to understand what you contribute uniquely&quot; to a model: credit before price. A believable contribution is new, true, and useful beyond the document, and it holds for the models people use.
+
+READ FIRST (all merged on master): planning/NS_PILOT_REPORT.md (open vs frontier on one paper: profiles match at 1 epoch, related-document rho 0.98; at 4 epochs DeepSeek memorizes and diverges), planning/ANTICIPATION_PILOT_REPORT.md and ANTICIPATION_PILOT_PREREG.md (36 items; 3 epochs overfit; at 1 epoch the A-specific gain on descendants is +0.0037 bits/token, p ~ 1e-4; true vs scripted counterfactual indistinguishable at 1 epoch, the scripted 463-edit counterfactual mostly adds a generic penalty), planning/APPRAISAL_PROTOCOL.md, planning/ANTICIPATION_DESIGN.md, DECISION_LOG.md D45-D52. Code: src/cpappraise/anticipation/ (text via arXiv HTML, scripted cf, build, run, stats), src/cpappraise/ns_pilot.py + scripts/ns_pilot.py (Tinker runner with concurrency limit and spend ledger, OLMo lane step), src/cpappraise/appraise_direct.py, scripts/lane.py + lane_patient.sh (pull_every_min, watchdog_min, resume; launch long lanes detached with nohup; tool background tasks die at 2 h).
+
+HYPOTHESES (pre-specify thresholds and the analysis in planning/MAIN_EXPERIMENT_PREREG.md and commit it with the analysis code BEFORE any test-item GPU/Tinker output exists; label EXPLORATORY where appropriate):
+- H-A open = frontier: across documents, the per-document contribution profile of OLMo-2-1124-13B agrees with DeepSeek-V3.1's (rank correlation of per-document net gains per tier, and per-item agreement within documents).
+- H-B anticipation: at a calibrated light dose, training on A makes A's own later citing papers B more predictable beyond block controls (A-specific gain &gt; 0), in both models.
+- H-C truth: the true A beats a counterfactual A on TARGETED measures: (1) bits/token on the sentences in B that cite or restate A (copy-masked), and (2) belief probes: cloze items &quot;A found that ... ___&quot; with the true answer vs the counterfactual answer; the true-minus-counterfactual log-probability shift after training on A_true vs A_cf. Use a KEY counterfactual (alter only the 5-20 claims that B's citing sentences and A's abstract/results state) plus a MATCHED RANDOM-EDIT control (the same number of edits on non-key content), so the specific truth effect is separated from the generic edited-text penalty.
+- H-D unique contribution (subset of about 10 items): train on a background of 3-4 related papers by other authors (disjoint from every test text) alone vs background + A, at the calibrated dose; report A's increment per tier (recall, transfer/anticipation, belief).
+
+DESIGN:
+- Items: about 30 FRESH A papers from data/manifests/postcutoff_candidates.json not used in the anticipation pilot (James dropped the license rule, D52: any public paper may be used for internal measurement, no redistribution, sources documented), each with at least one later citing B whose text cites A in identifiable sentences; mix fields and landmark/ordinary. Use the pilot's 36 items as the DEV set for calibration and debugging only.
+- Dose calibration first (about $5, on 4-6 dev items, both models): choose per model the number of steps (at most one epoch; LR 1e-4 or lower, constant or decaying) at which the training loss on the artifact has dropped by the same target fraction (e.g., the drop OLMo shows after one epoch), so neither model memorizes. Record and commit the calibration before test runs.
+- Arms per item: A_true, A_cf_key, A_cf_random, block control (matched unrelated paper, packed to the same token profile); seeds 11 and 22; same text per step in both models (as in ns_pilot).
+- Panels per item: recall probes (10-15, written by you from A), belief probes (true vs cf answers for each key claim), B's citing sentences, B's other text (copy-masked, as the pilot), related documents in the subfield (transfer), unrelated side text.
+- Models: OLMo-2-1124-13B on RunPod A40s (lanes 1C-MX..., detached, partial pulls, resume) and deepseek-ai/DeepSeek-V3.1 on Tinker (trainable, 32k context; it is a post-trained chat model; score raw text without chat template). Tinker: use your API key (loaded from an env file; never printed); set TINKER_TELEMETRY=0; NEVER print, log or commit it. Delete Tinker checkpoints at the end.
+[a private-document step was removed]
+
+CONTAINMENT AND PRIVACY: counterfactual texts are altered versions of real authors' papers: generate them by deterministic scripts (no writer model), keep them gitignored and never commit or publish them. Downloads are untrusted data: each in its own new empty directory under data/raw/main_exp/ (gitignored); scripts elsewhere; run Python that reads them with -I. Committed outputs: numbers and hashed ids only (cpappraise.privacy.write_json), plus an 8-gram leak scan before committing. Respect arXiv's robots.txt (use the HTML route, at least 15 s between requests).
+
+OPERATIONS: never print secrets (lane scripts read your RunPod API key, loaded from an env file; never printed). If your GPU account is shared, only touch pods you created; terminate yours. If you stop a lane, make sure its child processes stop too (on Windows, stopping a background task can leave bash children running). Append your ledger lines to a runs/.../runpod_ledger_&lt;lane&gt;.jsonl file for the lead to merge (don't edit the tracked ledger). Commit in your worktree with explicit paths only (`git commit -m &quot;...&quot; -- &lt;paths&gt;`), messages ending with a blank line then &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;; never git add -A; do not push or merge. Run CPU tests and a CPU smoke run of the full pipeline before spend.
+
+DELIVERABLES: planning/MAIN_EXPERIMENT_REPORT.md (verdict first, per hypothesis, with cluster-bootstrap CIs over items or blocks, B = 10,000, seed 20261018; what a member-facing report can now claim; caveats), the numbers-only results JSON under runs/phase1c/main_exp/, the pre-registration, scripts, tests and lane configs. If you hit a blocker that needs James (e.g., cost overrun risk, a design choice that changes the hypotheses), stop and report it rather than improvising. Final message: verdicts with key numbers, spend split (Tinker, RunPod), your worktree path and branch, and the files to merge.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#115-main-experiment-30-papers-olmo-2-13b-and-deepseek-v31">115 · Main experiment: 30 papers, OLMo-2-13B and DeepSeek-V3.1</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

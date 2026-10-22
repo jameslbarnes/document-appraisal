@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What we learned · Measuring what a document teaches a model</title>
+<meta name="description" content="Nine lessons about appraising a document&#x27;s contribution to a model, each tied to the experiment that taught it.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a class="active" href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>What we learned</h1>
+      <p class="summary">Nine lessons about appraising a document&#x27;s contribution to a model, each tied to the experiment that taught it.</p>
+<h2 id="1-measure-dont-ask">1. Measure, don&rsquo;t ask<a class="headerlink" href="#1-measure-dont-ask" title="Permanent link">#</a></h2>
+<p>A model asked whether an idea is novel makes a poor judge. Its answer depends on how the question is framed and who
+seems to be asking, and it cannot see past its training cutoff. Cheap, training-free scores fell short too. A
+compression-progress score detected planted new findings in a 13B model. But it predicted what a model actually
+learned only weakly: a correlation of 0.28 across 288 segments of real research records, against a pre-registered bar
+of 0.50. None of the cheap scores tested reached the bar. A simple in-context baseline did best at 0.44, and an
+excess-loss score in the style of RHO-LOSS was near zero. You have to train the model and compare.
+→ <a href="briefings/01-phase1-cheap-score.html">Phase 1</a>, <a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b</a>,
+<a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b</a></p>
+<h2 id="2-a-withwithout-fine-tune-is-a-workable-instrument">2. A with/without fine-tune is a workable instrument<a class="headerlink" href="#2-a-withwithout-fine-tune-is-a-workable-instrument" title="Permanent link">#</a></h2>
+<p>Training one copy of a model on the document, and another on a matched control, gives a stable picture. The two seeds
+agree, and the open and frontier models agree at the document level. It is cheap: about $1 per document for both
+models. That fine-tuning teaches models things is not news. What matters is using it as a measurement: a fair
+&ldquo;without&rdquo;, matched doses, held-out tests, and outputs that report numbers only.
+→ <a href="method.html">method</a>, <a href="briefings/07-main-experiment.html">main experiment</a></p>
+<h2 id="3-content-first-influence-second-behavior-last">3. Content first, influence second, behavior last<a class="headerlink" href="#3-content-first-influence-second-behavior-last" title="Permanent link">#</a></h2>
+<p>From easiest to hardest to detect, one document changes:</p>
+<ul>
+<li><strong>Its specific content.</strong> This is always detected. Names stick first: coined terms, named datasets, tools and
+  files.</li>
+<li><strong>How well the model anticipates later work.</strong> The later paper that cites the document becomes more predictable,
+  beyond what other papers in the field provide. This held in both models across 30 papers.</li>
+<li><strong>How the model approaches problems.</strong> It barely changes after one reading. After the Navier–Stokes paper, neither
+  model reliably chose the follow-up papers&rsquo; real next steps, and 0 of 70 blind-graded strategy answers used the
+  paper&rsquo;s key idea.</li>
+</ul>
+<p>→ <a href="briefings/07-main-experiment.html">main experiment</a>, <a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></p>
+<h2 id="4-unique-can-be-measured-as-an-increment">4. &ldquo;Unique&rdquo; can be measured as an increment<a class="headerlink" href="#4-unique-can-be-measured-as-an-increment" title="Permanent link">#</a></h2>
+<p>Have the model read three earlier related papers by other authors, then the document. Whatever the document still adds
+is its own. In the main experiment the recall gain survived in full. Related reading even helped the model absorb the
+document&rsquo;s specifics. About half (OLMo) to two-thirds (DeepSeek) of its effect on its own follow-up remained.
+→ <a href="briefings/07-main-experiment.html">main experiment</a></p>
+<h2 id="5-open-models-can-stand-in-for-frontier-models-for-comparisons-at-matched-doses">5. Open models can stand in for frontier models, for comparisons, at matched doses<a class="headerlink" href="#5-open-models-can-stand-in-for-frontier-models-for-comparisons-at-matched-doses" title="Permanent link">#</a></h2>
+<p>Across 30 papers the two models ranked documents alike: correlations of 0.68–0.75 on recall, follow-up and field
+transfer. Absolute sizes differ. The frontier model starts out knowing much more and takes in less of the specifics
+from the same dose (0.57 times on recall). Same-settings comparisons mislead: the dose must be calibrated per model.
+In the Navier–Stokes pilot, at the same settings, the frontier model got much worse on the older literature (−27.5
+mbit per byte). At a matched dose that loss disappeared (−0.4). The pilot&rsquo;s four-epoch reversal on related work was not
+re-tested at a matched dose.
+→ <a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a>, <a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></p>
+<h2 id="6-it-cannot-tell-true-from-false">6. It cannot tell true from false<a class="headerlink" href="#6-it-cannot-tell-true-from-false" title="Permanent link">#</a></h2>
+<p>A copy of each paper with its key numbers and comparisons altered scored the same as the real paper. Recall was 0.81
+against 0.81 in OLMo, and the follow-up effect was identical. On the altered claims themselves, the fake values
+registered more strongly than the true ones did, probably because surprise is what the measurement picks up. So
+measurement fixes flattery, not fabrication. Truth needs independent checking, replication, or warranties.
+→ <a href="briefings/07-main-experiment.html">main experiment</a>, <a href="briefings/05-anticipation-pilot.html">anticipation pilot</a></p>
+<h2 id="7-absorbed-influential-and-famous-are-different-things">7. Absorbed, influential and famous are different things<a class="headerlink" href="#7-absorbed-influential-and-famous-are-different-things" title="Permanent link">#</a></h2>
+<p>Famous papers taught models 2–3 times more specific facts, but they did not help their follow-ups more. This is a
+descriptive comparison of 9 papers against 21. The clearest single case was a data release, DESI DR1. It was absorbed
+heavily, but its follow-up used it only as a data source and gained little. Papers whose follow-ups worked on the same
+narrow subject and built on their ideas helped most. A report has to keep &ldquo;what it taught&rdquo; separate from
+&ldquo;how much it helped later work&rdquo;.
+→ <a href="briefings/07-main-experiment.html">main experiment</a>, <a href="briefings/09-sample-report.html">what a report could look like</a></p>
+<h2 id="8-reports-have-to-speak-human">8. Reports have to speak human<a class="headerlink" href="#8-reports-have-to-speak-human" title="Permanent link">#</a></h2>
+<p>Tables of bits and ranks did not help a reader understand anything. A report should say:</p>
+<ul>
+<li>what the model now knows or does;</li>
+<li>why a buyer or user would care;</li>
+<li>how the document compares with alternatives;</li>
+<li>what the report cannot say.</li>
+</ul>
+<p>Where possible it should show side-by-side behavior.
+→ <a href="briefings/09-sample-report.html">what a report could look like</a></p>
+<h2 id="9-it-fits-an-enclave-with-care">9. It fits an enclave, with care<a class="headerlink" href="#9-it-fits-an-enclave-with-care" title="Permanent link">#</a></h2>
+<p>The measurement can run on a reference model inside a secure enclave and release only bounded numbers. That is
+verification without disclosure, the primitive <a href="related-work.html">NDAI Agreements</a> needs. But the tests themselves can
+leak the document. A red-team exercise showed that a hidden test item can be read back through tier averages. Outputs
+need budgets, and contributors should approve the test panels.
+→ <a href="designs.html">design memos</a>, <a href="agenda.html">research agenda</a></p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#1-measure-dont-ask">1. Measure, don&rsquo;t ask</a></li>
+<li><a href="#2-a-withwithout-fine-tune-is-a-workable-instrument">2. A with/without fine-tune is a workable instrument</a></li>
+<li><a href="#3-content-first-influence-second-behavior-last">3. Content first, influence second, behavior last</a></li>
+<li><a href="#4-unique-can-be-measured-as-an-increment">4. &ldquo;Unique&rdquo; can be measured as an increment</a></li>
+<li><a href="#5-open-models-can-stand-in-for-frontier-models-for-comparisons-at-matched-doses">5. Open models can stand in for frontier models, for comparisons, at matched doses</a></li>
+<li><a href="#6-it-cannot-tell-true-from-false">6. It cannot tell true from false</a></li>
+<li><a href="#7-absorbed-influential-and-famous-are-different-things">7. Absorbed, influential and famous are different things</a></li>
+<li><a href="#8-reports-have-to-speak-human">8. Reports have to speak human</a></li>
+<li><a href="#9-it-fits-an-enclave-with-care">9. It fits an enclave, with care</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

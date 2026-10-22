@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design memos · Measuring what a document teaches a model</title>
+<meta name="description" content="Four design memos, on the direct-measurement appraisal protocol, testing transfer to frontier models, valuing research process data, and a truth-anchored anticipation yardstick, each with what it proposes, its status and what is still open.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a class="active" href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Design memos</h1>
+      <p class="summary">Four design memos, on the direct-measurement appraisal protocol, testing transfer to frontier models, valuing research process data, and a truth-anchored anticipation yardstick, each with what it proposes, its status and what is still open.</p>
+<p>These four memos were written on 2026-10-20 and are kept under <code>planning/</code> in the study&rsquo;s repository. They lay out designs; only the protocol memo spent GPU money (a small demo). Each section says what the memo proposes, what has happened since, and what is still open. Terms are defined in the <a href="glossary.html">glossary</a>.</p>
+<h2 id="the-direct-measurement-appraisal-protocol">The direct-measurement appraisal protocol<a class="headerlink" href="#the-direct-measurement-appraisal-protocol" title="Permanent link">#</a></h2>
+<p><code>planning/APPRAISAL_PROTOCOL.md</code> (v0.1). Code: <code>src/cpappraise/appraise_direct.py</code>, <code>scripts/appraise_direct.py</code>, <code>tests/test_appraise_direct.py</code>.</p>
+<p><strong>What it proposes.</strong> Measure what a pinned reference model learns from a document, rather than estimate it with a cheap score (Phase 1b showed cheap scores cannot stand in for training). Inside a trusted execution environment (TEE):</p>
+<ul>
+<li>fine-tune briefly on the document with LoRA, over several seeds;</li>
+<li>run the same fine-tune on matched control texts, so every gain is net of &ldquo;any training of this size and field&rdquo;;</li>
+<li>score a panel supplied by the buyer, in four tiers: recall probes, transfer text, side-effect text and task items;</li>
+<li>repeat on a library of comparable documents, to place the result as a percentile.</li>
+</ul>
+<p>Only a numbers-only report leaves: per tier, a net effect, its spread, an interval, a decile among comparables and a status of gain, inconclusive or loss. A tier never reads &ldquo;not learned&rdquo;; inconclusive means &ldquo;not detected with this recipe, panel and model&rdquo;. The panel is the attack surface, since a buyer could write probes that test a guessed secret. Defenses include no per-item outputs, minimum tier sizes, owner review of the panel, a cap of 134.2 bits per report at the defaults, and destroying the trained weights. A later addition, the increment, measures what the document adds beyond related documents by other authors.</p>
+<p><strong>Status.</strong> A prototype that passes its 25 tests. A demo on OLMo-2-1B found the recall gain the document states: +0.78 bits per probe [0.27, 1.29] under LoRA, +4.28 under full fine-tuning. The two differential-privacy modes run, but at demo size their noise swamps the signal. A red team showed that per-item outputs would leak which facts the document holds, and that even one hidden item can leak through an unnoised tier average. Estimated cost: about $0.60 per 13B appraisal. The <a href="briefings/07-main-experiment.html">main experiment</a> tested the increment: the recall increment was +1.34 bits per probe in OLMo-2-13B and +0.85 in DeepSeek-V3.1.</p>
+<p><strong>Open.</strong> Who reviews the panel; default tier sizes and privacy budgets; domain-matched or generic controls; a full fine-tuning recipe at 7B and above; ledger checks that catch paraphrased resubmissions; attestation. Pricing is out of scope.</p>
+<h2 id="transfer-to-frontier-models">Transfer to frontier models<a class="headerlink" href="#transfer-to-frontier-models" title="Permanent link">#</a></h2>
+<p><code>planning/TRANSFER_DESIGN.md</code>. Script: <code>scripts/flips_13v32.py</code> (numbers in <code>runs/phase1c/flips_13v32.json</code>).</p>
+<p><strong>What it proposes.</strong> Two things.</p>
+<ol>
+<li><strong>A diagnosis.</strong> Why did the 32B scorer do worse than the 13B on Phase 1b&rsquo;s planted gate? (W, the share of items whose planted finding outscores its control, was 0.85 against 0.95.) The exploratory answer: item-level noise around an unchanged average gap, not a scale trend. The idea that the 32B &ldquo;copies more&rdquo; was refuted. On the inserted passages the gate was built around, both scorers rank 51 of 60 items correctly.</li>
+<li><strong>A transfer plan.</strong> Does an open model&rsquo;s appraisal predict what a frontier model learns?<ul>
+<li>Open reference appraisers: OLMo-2-13B, Olmo-3-1125-32B and Qwen2.5-32B, each admitted only after passing its own planted gate.</li>
+<li>A survey of fine-tuning services, checked on 2026-10-20. No closed provider both fine-tunes and scores supplied text. OpenAI&rsquo;s self-serve fine-tuning closes to everyone on 2027-01-06, leaving Azure&rsquo;s gpt-4.1-mini as the realistic closed route. Tinker offers frontier-scale open-weight models (DeepSeek-V3.1, Kimi-K2.6) with full log-probabilities. No Claude model can be fine-tuned, so Claude could only enter an in-context arm.</li>
+<li>TX1: fine-tune each frontier model once on a sister study&rsquo;s randomized stream of 948 post-cutoff claims, and test whether open appraisals predict which claims it learns (about $90 core, $250 extended). TX2, a planted transfer gate, and TX3, an in-context arm, would follow, with a scale ladder across model families (about $30–40).</li>
+<li>A frontier null would read inconclusive, never absent.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Status.</strong> Design only. TX1–TX3 and the scale ladder were not run. The study tested open-to-frontier agreement another way, by direct measurement on DeepSeek-V3.1 through Tinker: the <a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a> and the <a href="briefings/07-main-experiment.html">main experiment</a>.</p>
+<p><strong>Open.</strong> Whether open appraisals predict frontier learning claim by claim. A decision on sending planted documents to outside providers, which TX2 and TX3 need. Azure&rsquo;s fine-tuning window, open until at least 2027-04-14, sets a deadline for any closed-model arm.</p>
+<h2 id="valuing-research-process-data">Valuing research process data<a class="headerlink" href="#valuing-research-process-data" title="Permanent link">#</a></h2>
+<p><code>planning/PROCESS_VALUE_DESIGN.md</code> (design v0). Stand-in sources: <code>data/manifests/process_standins.json</code>.</p>
+<p><strong>What it proposes.</strong> Lab journals, notebook histories, agent logs and review histories hold decisions, not just facts, so recall probes miss most of their value. The memo applies the protocol&rsquo;s rule: measure, don&rsquo;t score.</p>
+<ul>
+<li>Fine-tune a fixed open model (OLMo-2-13B, with the Phase 1b LoRA recipe) briefly on the record.</li>
+<li>Test it on decision panels with known answers, from the record&rsquo;s own later decisions and from other researchers in the field: next decision, failure and outcome anticipation, critique anticipation, revision, and verified proof steps where a checker exists. Fixed likelihood and forced-choice rules do the scoring; model judges are secondary.</li>
+<li>Compare, at equal compute, with a matched record from another researcher, a scrambled copy of the same record (same tokens, broken links from state to decision to outcome), and the record&rsquo;s own end product plus generic process text.</li>
+<li>Report imitation, transfer to other researchers and verified-outcome skill separately. Only transfer, verified outcomes and beating a synthetic reconstruction would carry price weight, so a fabricated, self-predictable record earns nothing.</li>
+<li>Pilot: a code-generated test world with known answers (about $5), then mathlib4 pull-request histories as the agent-log stand-in (about $55–70) and Kaggle notebook histories as the journal stand-in (about $25–35).</li>
+</ul>
+<p><strong>Status.</strong> Design only: no GPU spend, nothing pre-registered, pilot not run. A feasibility count from hashed metadata found 47 qualifying mathlib4 contributors.</p>
+<p><strong>Open.</strong> Approving the pilot. Using mathlib4 review comments, which carry no explicit license. Whether synthetic reconstructions are allowed. Which record type comes first. Records owned by an institution rather than the researcher. Whether text by others in a record, such as AI turns or reviewers&rsquo; comments, counts toward its owner&rsquo;s appraisal. Even a pass would validate the method only on public stand-ins.</p>
+<h2 id="truth-anchored-anticipation">Truth-anchored anticipation<a class="headerlink" href="#truth-anchored-anticipation" title="Permanent link">#</a></h2>
+<p><code>planning/ANTICIPATION_DESIGN.md</code>. Candidate corpus: <code>data/manifests/postcutoff_candidates.json</code>, built by <code>scripts/postcutoff/postcutoff.py</code>.</p>
+<p><strong>What it proposes.</strong> A yardstick that rewards true, useful knowledge rather than whatever text a model can learn. Train on a paper A posted after the model&rsquo;s training cutoff, then measure the gain on later papers B that cite A (its follow-ups), counting only B&rsquo;s words that do not copy A. Papers come in blocks of six, so the others in a block act as controls and T* isolates A&rsquo;s effect on its own follow-up. The truth test is a counterfactual: a copy of A with its key claims altered should score lower. Other proposed arms: paraphrased A, A with its findings removed, A&rsquo;s abstract ten times, topic-matched controls, and a positive control trained on B&rsquo;s own opening. The proposed evidence tests run from &ldquo;the panel can see learning&rdquo; through truth to prospective uptake: freeze each paper&rsquo;s value, then check its citations over the next 12 months.</p>
+<ul>
+<li>Corpus: 135 papers posted 2025-01 to 2026-03 with later citing arXiv papers (314 pairs).</li>
+<li>Corrected cutoffs: OLMo 2&rsquo;s training data reaches 2024-09-30, past its stated cutoff, so its papers must be posted after 2025-01-01; for Olmo 3, after 2025-07-01.</li>
+</ul>
+<p><strong>Status.</strong> The 13B <a href="briefings/05-anticipation-pilot.html">anticipation pilot</a> ran: its three-epoch gate failed, but one epoch showed the predicted gain. The <a href="briefings/07-main-experiment.html">main experiment</a> replicated that gain in OLMo-2-13B and DeepSeek-V3.1 on 30 fresh papers, but truth on later papers&rsquo; text was not established. Not run: the 32B models, the paraphrase and findings-removed arms, topic-matched controls, and the prospective-uptake test.</p>
+<p><strong>Open.</strong> Whether the measure tracks truth, since scripted alterations change numbers and comparison words that citing sentences rarely restate. Judging whether B builds on A rather than merely citing it. Signal size at a light dose.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-direct-measurement-appraisal-protocol">The direct-measurement appraisal protocol</a></li>
+<li><a href="#transfer-to-frontier-models">Transfer to frontier models</a></li>
+<li><a href="#valuing-research-process-data">Valuing research process data</a></li>
+<li><a href="#truth-anchored-anticipation">Truth-anchored anticipation</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

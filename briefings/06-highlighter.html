@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Per-passage highlighter · Measuring what a document teaches a model</title>
+<meta name="description" content="Within a document, the 13B score did not single out the passage holding a new finding (top-1 in 11.7% of documents against a bar of 50%); it registers a finding only when a passage is compared with its own no-finding twin, the idea behind the planned automatic-twin claim test.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a class="active" href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Per-passage highlighter</h1>
+      <p class="summary">Within a document, the 13B score did not single out the passage holding a new finding (top-1 in 11.7% of documents against a bar of 50%); it registers a finding only when a passage is compared with its own no-finding twin, the idea behind the planned automatic-twin claim test.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>In Phase 1b, OLMo-2-13B&rsquo;s payoff score ranked a passage holding a new finding above a matched passage without it in 95% of pairs. Could the same score show an author which parts of a document are new to the model? Concretely: within one document, does the per-passage score put the paragraph that holds the new finding on top?</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<p>Terms are defined in the <a href="../glossary.html">glossary</a>.</p>
+<ul>
+<li><strong>Documents.</strong> The 60 Phase 1b test documents. Each is a real public record of 21–31 passages (about 2,900 tokens). One passage, written for the study, states a finding that is new to the model; three later passages restate or use it. These planted passages stay private.</li>
+<li><strong>Twins.</strong> Each document has a twin in which the finding passage is swapped for a same-story passage with no finding. Nothing else changes.</li>
+<li><strong>Scores</strong> for every passage, from OLMo-2-13B with Phase 1b&rsquo;s frozen code:<ul>
+<li>payoff (<code>P_corr</code>): how much harder the next 768 tokens are to predict when the passage is removed, with copied words masked;</li>
+<li>surprise: <code>S_in</code> (bits per token in context), <code>S_cold</code> (alone) and their difference K;</li>
+<li>two surprise-times-payoff combinations, a quadrant rule and a rank product.</li>
+</ul>
+</li>
+<li><strong>Metrics.</strong> Where the finding passage ranks among all passages (top-1, top-3, mean reciprocal rank). The same ranks at the same position in the twin, where there is no finding, count false highlights.</li>
+<li><strong>Reading rule</strong>, committed before the run: a score localizes only if its top-1 is at least 0.50, it beats chance and the surprise baselines, and its top-1 in the twins is at most half its top-1 in the real documents. The study is exploratory, not pre-registered.</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Verdict: NO.</strong> Payoff ranks the finding first in 11.7% of documents (chance 4.1%) and in the top 3 in 33%.</li>
+<li><strong>Payoff mostly highlights the document&rsquo;s opening.</strong> In the 53 misses, the top passage is the record&rsquo;s first passage 55% of the time and comes before the finding 81% of the time. It out-pays the finding by a median 75 bits. Payoff measures how much later text depends on a passage, and setup passages dominate that.</li>
+<li><strong>The finding registers only as a paired signal.</strong> The finding passage out-pays its own twin in 95% of items, exactly as in Phase 1b. But the difference, a median 16 bits (64.2 against 48.3), is small next to the spread of payoffs within one document.</li>
+<li><strong>Surprise looks better but ignores the finding.</strong> <code>S_in</code> puts the finding first in 60% of documents, and the finding-free twin passage first in 57%. Inserted passages are simply more surprising than the record&rsquo;s own text (6.0 against 3.5 bits per token), with or without a finding.</li>
+<li><strong>Combinations inherit the surprise artifact.</strong> The rank product reaches top-1 0.425, but also 0.317 in the twins. The quadrant classifier flags 1.5 of the record&rsquo;s own passages per document, so only 26% of its flags hit the finding.</li>
+</ul>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li>Per-passage &ldquo;what&rsquo;s new&rdquo; maps from this score should not be offered. What the score knows about a finding is a comparison (this passage against the same passage without the finding), not a ranking of passages.</li>
+<li><strong>Planned fix: an automatic-twin claim test.</strong> Keep the comparison that worked and drop the ranking. For each claim in a document, generate its twin automatically: the same passage with that claim removed and everything else unchanged. Then score each passage against its own twin. This is a plan. It has not been built or run.</li>
+<li>The report adds two untested suggestions. Discount the payoff that setup passages earn by position and length, or replace a passage instead of deleting it. And test surprise on documents whose new findings are natural text, where insertion cannot give them away.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<p>Share of the 60 documents where each score ranks the finding first, with 95% cluster-bootstrap intervals over 31 clusters. &ldquo;Twins&rdquo; is the same share at the finding&rsquo;s position in the twin documents, where there is no finding. MRR is mean reciprocal rank.</p>
+<table>
+<thead>
+<tr>
+<th>Score</th>
+<th>Top-1, real documents</th>
+<th>Top-1, twins (false highlights)</th>
+<th>MRR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Payoff <code>P_corr</code></td>
+<td>0.117 (0.034–0.217)</td>
+<td>0.083 (0.017–0.153)</td>
+<td>0.322</td>
+</tr>
+<tr>
+<td>Quadrant rule, then payoff</td>
+<td>0.233 (0.117–0.361)</td>
+<td>0.167 (0.081–0.271)</td>
+<td>0.446</td>
+</tr>
+<tr>
+<td>Rank product of <code>S_cold</code> and <code>P_corr</code></td>
+<td>0.425 (0.292–0.560)</td>
+<td>0.317 (0.197–0.449)</td>
+<td>0.577</td>
+</tr>
+<tr>
+<td>Surprise in context <code>S_in</code></td>
+<td>0.600 (0.475–0.721)</td>
+<td>0.567 (0.439–0.690)</td>
+<td>0.749</td>
+</tr>
+<tr>
+<td>Surprise alone <code>S_cold</code></td>
+<td>0.150 (0.050–0.263)</td>
+<td>0.183 (0.069–0.306)</td>
+<td>0.364</td>
+</tr>
+<tr>
+<td>K = <code>S_cold</code> − <code>S_in</code></td>
+<td>0.000</td>
+<td>0.000</td>
+<td>0.042</td>
+</tr>
+<tr>
+<td>Chance</td>
+<td>0.041</td>
+<td></td>
+<td>0.155</td>
+</tr>
+</tbody>
+</table>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li>Exploratory, with one analyst, no independent verifier, and no correction across the nine scores compared.</li>
+<li>The planted passages are detectably foreign: more surprising than the record and unhelped by its context. That confounds every surprise-based score here. Documents with natural new findings were not tested, so surprise may still work on real novelty.</li>
+<li>Ground truth is partial. The records&rsquo; own passages may hold content new to the model, and any such top-1 counts as a miss.</li>
+<li>The setting favors payoff: every finding is followed by a full window and three passages that use it. A real finding near the end of a document, or one never echoed, would earn less.</li>
+<li>One scorer (13B), one window (768 tokens), one copy rule. With 60 items in 31 clusters, proportions carry intervals of about ±0.1–0.13.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<p>Run on 2026-10-20. RunPod: $0.52 (cap $5), one A40 GPU for 0.875 pod-hours. Scoring took about 19 s ($0.003) per 2,900-token document, excluding boot and model download.</p>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<ul>
+<li>Report: <code>planning/HIGHLIGHTER_REPORT.md</code>.</li>
+<li>Numbers (no text): <code>runs/phase1c/highlight/highlight.json</code> (pre-specified results), <code>posthoc.json</code> (post-hoc descriptives), <code>unit_meta.json</code> (hashed ids), <code>units13_part0/</code> and <code>units13_part1/</code> (per-passage scores).</li>
+<li>Code: <code>scripts/hl_build_units.py</code>, <code>scripts/hl_analyze.py</code>, <code>scripts/hl_posthoc.py</code>; scoring with <code>python -m cpappraise.jobs units</code> (<code>src/cpappraise/jobs.py</code>, <code>payoff.py</code>, <code>quadrant.py</code>). Config: <code>configs/lane_1c_highlight.json</code>.</li>
+<li>The documents and planted passages are gitignored and not published.</li>
+<li>To rerun, see <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run an appraisal of a public document · Measuring what a document teaches a model</title>
+<meta name="description" content="A step-by-step runbook for measuring what one public document teaches OLMo-2-13B, and optionally DeepSeek-V3.1, with the study&#x27;s existing code, from gathering inputs to reading the results.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a class="active" href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Run an appraisal of a public document</h1>
+      <p class="summary">A step-by-step runbook for measuring what one public document teaches OLMo-2-13B, and optionally DeepSeek-V3.1, with the study&#x27;s existing code, from gathering inputs to reading the results.</p>
+<div class="admonition warning">
+<p class="admonition-title">Research code, not a tool</p>
+<p>This is the code that ran the study. There is no one-command appraisal yet. You assemble input files, write a
+lane config, run several scripts and read JSON output. Two of the three routes below were written for one
+experiment and must be adapted by editing code. The study&rsquo;s probes and test items were written by AI agents
+(Claude subagents) under frozen protocols. You will need to write or commission your own, and agent-written
+probes are a known limit of the study.</p>
+</div>
+<h2 id="what-you-will-measure">What you will measure<a class="headerlink" href="#what-you-will-measure" title="Permanent link">#</a></h2>
+<p>An appraisal is a controlled comparison (see <a href="../method.html">the method</a>). You train one copy of a model on your
+document and another copy on a control document of the same length. Both copies get the same steps, the same number
+of tokens and the same random seeds. Then you score both copies, and the untrained base model, on the same panel of
+tests. The document&rsquo;s gain over the base, minus the control&rsquo;s gain, is what the document taught.</p>
+<p>Three extras are optional:</p>
+<ul>
+<li><strong>Comparables</strong> place your result as a percentile among similar documents appraised the same way.</li>
+<li><strong>Follow-ups</strong>, later papers that cite your document, show whether it helps predict the work built on it.</li>
+<li><strong>The increment</strong> trains both copies on a background of related papers as well, so the difference shows what your
+  document adds beyond them.</li>
+</ul>
+<p>Terms such as LoRA, dose, panel, copy mask and bits are defined in the <a href="../glossary.html">glossary</a>.</p>
+<h2 id="choose-a-route">Choose a route<a class="headerlink" href="#choose-a-route" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Models</th>
+<th>What you get</th>
+<th>What you must adapt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A.</strong> <code>python -m cpappraise.appraise_direct</code></td>
+<td>OLMo-2 (1B to 13B) on RunPod</td>
+<td>One document against controls and comparables. Recall, transfer, side and task tiers. A bounded, numbers-only report with an interval, a percentile and a status per tier</td>
+<td>Write the input files and a lane config</td>
+</tr>
+<tr>
+<td><strong>B.</strong> <code>scripts/ns_pilot.py</code></td>
+<td>OLMo-2-13B on RunPod and DeepSeek-V3.1 on Tinker</td>
+<td>One document on both models. Recall, plus related, background and side text tiers, and the open-versus-frontier comparison</td>
+<td>Edit its source table, which lists the Navier–Stokes pilot&rsquo;s documents, and write a probe file</td>
+</tr>
+<tr>
+<td><strong>C.</strong> <code>scripts/main_exp/</code> and <code>python -m cpappraise.mainexp.run</code></td>
+<td>Both</td>
+<td>Several documents in blocks, with citing follow-ups. Anticipation, the increment over background papers, and the counterfactual truth arms</td>
+<td>Add your documents as items. The pipeline expects arXiv papers with later citing papers</td>
+</tr>
+</tbody>
+</table>
+<p>Route A is the most general for one document on the open model. Route B is the shortest path to both models. Route
+C is the setup behind the main experiment&rsquo;s numbers and, of the three, the only one with the increment arms built in.</p>
+<h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">#</a></h2>
+<ol>
+<li>Set up the environment and accounts as in the <a href="index.html#requirements">requirements</a>, and run the tests.</li>
+<li>Work in a fresh git worktree or branch. Routes B and C write to fixed paths under <code>data/interim/</code> and
+   <code>runs/phase1c/</code>, so a separate branch keeps the study&rsquo;s files intact.</li>
+<li>Keep text out of git:<ul>
+<li>put each download in its own new directory under <code>data/raw/</code>, which is gitignored;</li>
+<li>read downloads only with scripts run as <code>python -I</code>;</li>
+<li>keep built inputs under <code>data/interim/</code>, which is also gitignored;</li>
+<li>commit only numbers-only outputs, written with <code>privacy.write_json</code>.</li>
+</ul>
+</li>
+<li>Commit your code before a lane runs. A lane pushes the committed state at its <code>ref</code> (a commit, a tag or <code>HEAD</code>) to
+   the pod, plus the input files it lists.</li>
+</ol>
+<p>In the commands below, <code>python</code> means the environment&rsquo;s interpreter.</p>
+<h2 id="step-1-gather-the-inputs">Step 1: Gather the inputs<a class="headerlink" href="#step-1-gather-the-inputs" title="Permanent link">#</a></h2>
+<h3 id="the-document">The document<a class="headerlink" href="#the-document" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>arXiv papers.</strong> The HTML rendering is the cleanest source. <code>scripts/main_exp/fetch_html.py</code> fetches exact
+  versions one at a time, at least 15 seconds apart (the crawl delay in arXiv&rsquo;s robots.txt), each into a new
+  directory under <code>data/raw/main_exp/</code>. <code>cpappraise.anticipation.text</code> turns a page into passages and drops the
+  bibliography and back matter.</li>
+<li><strong>PDFs.</strong> <code>cpappraise.ns_pilot</code> has <code>pdf_text</code>, which runs <code>pdftotext -raw</code>, and <code>clean_pdf_text</code>, which removes
+  running heads, arXiv stamps and the references section.</li>
+<li><strong>Length.</strong> OLMo-2 reads 4,096 tokens at a time. The code splits the document into passages of about 128 tokens
+  and groups them into training sequences: at most 2,048 tokens in the main experiment, 3,584 in the Navier–Stokes
+  runs. The main experiment capped each paper at 24,000 tokens.</li>
+</ul>
+<h3 id="a-control-of-the-same-length">A control of the same length<a class="headerlink" href="#a-control-of-the-same-length" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>What it is.</strong> An unrelated document at least as long as yours, in tokens.</li>
+<li><strong>Packing.</strong> The code packs the control into your document&rsquo;s training profile: the same number of sequences, with
+  the same token lengths (<code>appraise_direct.pack</code>). A control that is too short is refused. So both copies get
+  identical steps and tokens.</li>
+<li><strong>What the study used.</strong> The main experiment used papers from an unrelated field, concatenated to at least 30,000
+  tokens (<code>scripts/main_exp/plan_wave2.py controls</code>). The Navier–Stokes runs used one long algebra paper. The
+  behavior test&rsquo;s report notes that a control from the same field, on an unrelated topic, would isolate method
+  effects better.</li>
+</ul>
+<h3 id="comparables-optional">Comparables (optional)<a class="headerlink" href="#comparables-optional" title="Permanent link">#</a></h3>
+<ul>
+<li>Similar documents, appraised with the same controls, recipe and panel. Route A reports your document&rsquo;s percentile
+  among them, in deciles, when there are at least five.</li>
+<li>Each comparable costs as many runs as your document. Route A&rsquo;s run count is seeds × (1 + controls + comparables),
+  so comparables dominate the cost of a small appraisal.</li>
+</ul>
+<h3 id="probes">Probes<a class="headerlink" href="#probes" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Recall probes</strong> are fill-in-the-blank prompts written from the document, scored by the bits of the exact answer.</li>
+<li><strong>The protocol.</strong> Follow <code>prompts/main_exp_probe_protocol.md</code>, shown on the
+  <a href="prompts/protocols.html">protocols page</a>:<ul>
+<li>12 per document: 5 verbatim, 7 paraphrased;</li>
+<li>answers of 1 to 5 words that occur in the document and are specific to it;</li>
+<li>no numbers or comparative words in answers;</li>
+<li>spread over the whole paper.</li>
+</ul>
+</li>
+<li><strong>Belief probes</strong> (optional) test whether the model takes on a paper&rsquo;s specific claims. Each is scored with a true
+  and an altered answer.</li>
+<li><strong>Who writes them.</strong> The study&rsquo;s probes were written by Claude subagents. Write yours yourself, or have an agent
+  write them and check them.</li>
+<li><strong>Route A&rsquo;s screen.</strong> Before it runs, Route A checks the panel without a model (<code>screen</code>):<ul>
+<li>at least 16 recall probes by default (<code>min_items</code> in the config);</li>
+<li>no answer or prompt used more than twice;</li>
+<li>at most 10% near-duplicates;</li>
+<li>at most 25% numeric answers, unless the approval allows more.</li>
+</ul>
+</li>
+<li><strong>Answer spacing.</strong> Route A tokenizes the prompt and the answer separately and joins the tokens. Start the answer
+  with a space when the prompt ends without one. The main-experiment build adds this space for you.</li>
+</ul>
+<h3 id="follow-ups-related-documents-and-side-text">Follow-ups, related documents and side text<a class="headerlink" href="#follow-ups-related-documents-and-side-text" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Follow-ups</strong> (anticipation) are later papers that cite your document. Route C finds the sentences that cite it
+  (<code>mainexp.cites</code>) and scores them as their own tier.</li>
+<li><strong>Related documents</strong> (transfer) are papers in the same field by other authors. They are never trained on.</li>
+<li><strong>Side text</strong> is unrelated text, which should not change. The study used Wikipedia texts chosen by
+  <code>python -m cpappraise.finetune select-controls</code>, which writes the gitignored
+  <code>data/interim/controls/wikipedia_20231101.jsonl</code>.</li>
+<li><strong>The copy mask</strong> applies automatically. Tokens that a scored text copies from the training document count as zero
+  gain, so pasting a panel text into the document earns nothing.</li>
+</ul>
+<h3 id="background-papers-for-the-increment">Background papers (for the increment)<a class="headerlink" href="#background-papers-for-the-increment" title="Permanent link">#</a></h3>
+<p>In the main experiment the background was three of the document&rsquo;s references: arXiv papers from 2025 up to the
+document&rsquo;s own month, not by its authors, each capped at 6,000 tokens (<code>scripts/main_exp/plan_wave2.py background</code>).</p>
+<h2 id="step-2-calibrate-the-dose-for-each-model">Step 2: Calibrate the dose for each model<a class="headerlink" href="#step-2-calibrate-the-dose-for-each-model" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>The dose</strong> is how hard a model fits the document: D = 1 − L_after / L_base. L is the mean bits per token over the
+  document&rsquo;s own training sequences, scored on the base model and again after training.</li>
+<li><strong>The anchor</strong> is OLMo-2-13B with LoRA at a constant learning rate of 1e-4 for one epoch. This is the light dose at
+  which paper-specific anticipation appeared in the pilot.</li>
+<li>
+<p><strong>Matching.</strong> DeepSeek-V3.1 trains for the same one epoch, on the same passage groups in the same order. Its
+  learning rate is the knob:</p>
+<ol>
+<li>run two to four learning rates for one epoch with one seed, scoring only the document&rsquo;s own sequences;</li>
+<li>interpolate on log-log axes between the two rates that bracket OLMo&rsquo;s mean D;</li>
+<li>round to two significant digits, and never go above 1e-4.</li>
+</ol>
+<p>If OLMo&rsquo;s D lies outside the range you ran, run one more rate. That was the behavior test&rsquo;s rule; the main
+experiment&rsquo;s rule took the nearest rate it had run.</p>
+</li>
+<li>
+<p><strong>What the study found.</strong></p>
+<ul>
+<li>At the same learning rate, DeepSeek fits about 2.6 times harder.</li>
+<li>On the main experiment&rsquo;s development papers, DeepSeek at 5.5e-5 dropped its loss on the paper by 3.8%,
+  against OLMo&rsquo;s 3.7% at 1e-4. On the 30 test papers the drops were 6.23% and 6.25%, and the per-paper drops
+  agreed closely (Spearman 0.97).</li>
+<li>For the much longer Navier–Stokes paper the matched rate was 2.9e-5, and both models&rsquo; loss on the paper fell
+  by about 15%. So calibrate for each document set.</li>
+</ul>
+</li>
+<li><strong>Why it matters.</strong> In the Navier–Stokes pilot, at four epochs and an unmatched dose, DeepSeek&rsquo;s training loss on
+  the paper fell to 0.18 bits per token, near memorization, and its profile diverged from OLMo&rsquo;s.</li>
+<li><strong>The code.</strong><ul>
+<li>Route C: <code>python -I scripts/main_exp/calibrate.py build</code>; the OLMo calibration lane
+  <code>configs/lane_1c_mx_cal.json</code>, which scores the dose at a quarter, half, three quarters and the end of the
+  epoch; <code>python -I scripts/main_exp/calibrate.py tinker --lrs 1e-4 5e-5 2.5e-5 1.25e-5</code>; then
+  <code>python -I scripts/main_exp/calibrate.py choose</code>.</li>
+<li>One paper: <code>python -I scripts/ns_behavior/tinker_nsb.py calib --lrs ...</code> and then <code>choose</code>, from the behavior
+  test.</li>
+<li>Both read their own experiment&rsquo;s inputs. Adapt the one closer to your setup.</li>
+</ul>
+</li>
+<li><strong>Route A</strong> uses the open model alone, so there is nothing to match. Use the same anchor, LR 1e-4 and one epoch, so
+  your numbers are comparable with the study&rsquo;s.</li>
+</ul>
+<h2 id="step-3-run-the-open-model-on-runpod">Step 3: Run the open model on RunPod<a class="headerlink" href="#step-3-run-the-open-model-on-runpod" title="Permanent link">#</a></h2>
+<h3 id="write-a-lane-config">Write a lane config<a class="headerlink" href="#write-a-lane-config" title="Permanent link">#</a></h3>
+<p>A lane config lists the GPU, the disk, the git ref to push, a time estimate, the input files to push, the pinned
+models to download and the steps to run. Copy the closest existing config. The template below follows
+<code>configs/lane_ap_demo1b_final.json</code> and <code>configs/lane_1c_nsb_olmo13.json</code>. Save it as, for example,
+<code>configs/lane_my_ap_1.json</code>; <code>my_appraisal</code> and <code>MY-AP-1</code> are placeholder names.</p>
+<pre><code class="language-json">{
+ &quot;lane&quot;: &quot;MY-AP-1&quot;,
+ &quot;gpu&quot;: &quot;NVIDIA A40&quot;,
+ &quot;disk&quot;: 150,
+ &quot;ref&quot;: &quot;HEAD&quot;,
+ &quot;est_hours&quot;: 1.0,
+ &quot;inputs&quot;: [
+  &quot;data/interim/my_appraisal/artifact.jsonl&quot;,
+  &quot;data/interim/my_appraisal/controls.jsonl&quot;,
+  &quot;data/interim/my_appraisal/comparables.jsonl&quot;,
+  &quot;data/interim/my_appraisal/panel.json&quot;,
+  &quot;data/interim/my_appraisal/config.json&quot;,
+  &quot;data/interim/my_appraisal/approval.json&quot;
+ ],
+ &quot;models&quot;: [&quot;olmo2-13b&quot;],
+ &quot;steps&quot;: [
+  {
+   &quot;name&quot;: &quot;appraise&quot;,
+   &quot;cmd&quot;: &quot;PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python -m cpappraise.appraise_direct run --artifact data/interim/my_appraisal/artifact.jsonl --panel data/interim/my_appraisal/panel.json --controls data/interim/my_appraisal/controls.jsonl --comparables data/interim/my_appraisal/comparables.jsonl --approval data/interim/my_appraisal/approval.json --config data/interim/my_appraisal/config.json --out runs/my_appraisal&quot;,
+   &quot;heartbeat&quot;: &quot;runs/my_appraisal/progress.json&quot;,
+   &quot;pull&quot;: &quot;runs/my_appraisal&quot;,
+   &quot;pull_every_min&quot;: 15,
+   &quot;watchdog_min&quot;: 30
+  }
+ ]
+}
+</code></pre>
+<ul>
+<li><code>models</code> takes keys from <code>cpappraise.jobs.MODELS</code>: <code>olmo2-1b</code>, <code>olmo2-7b</code>, <code>olmo2-13b</code>, <code>olmo2-32b</code>,
+  <code>qwen3-1.7b</code>, <code>qwen3-4b</code>. Each is pinned to a Hugging Face revision, and <code>fetch_model.py</code> checks every weight
+  file&rsquo;s size.</li>
+<li><code>est_hours</code> is logged before the run, and the pod is terminated at twice that time. Size it from the cost table in
+  <code>planning/APPRAISAL_PROTOCOL.md</code> (section 8).</li>
+<li><code>pull_every_min</code> pulls partial outputs while a step runs, <code>watchdog_min</code> stops a step whose heartbeat stalls, and
+  <code>resume: true</code> pushes pulled parts back before a retried step. Resume helps only jobs that skip finished parts:
+  the Route B and C runners do, and Route A does not.</li>
+</ul>
+<h3 id="route-a-the-direct-protocol">Route A: the direct protocol<a class="headerlink" href="#route-a-the-direct-protocol" title="Permanent link">#</a></h3>
+<p>The input files:</p>
+<ul>
+<li><code>artifact.jsonl</code>: one document per line, as <code>{"doc_id": ..., "passages": [...]}</code>, or <code>{"doc_id": ..., "text": ...}</code>
+  to let the frozen splitter cut the passages.</li>
+<li><code>controls.jsonl</code> and <code>comparables.jsonl</code>: the same lines plus <code>"artifact_id"</code>. Lines with the same id form one
+  artifact.</li>
+<li><code>panel.json</code>: <code>{"panel_id": ..., "recall": [{"id", "prompt", "answer"}], "transfer": [{"id", "text"}],
+  "side": [{"id", "text"}], "task": [{"id", "prompt", "choices", "correct"}]}</code>. Any tier may be absent.</li>
+<li><code>config.json</code>: a partial config whose keys merge into the defaults. For the study&rsquo;s light dose on the 13B:
+  <code>{"model": "olmo2-13b", "lr": 1e-4, "epochs": 1, "seeds": [11, 22], "gradient_checkpointing": true}</code>. The
+  module&rsquo;s defaults (OLMo-2-1B, LR 1e-4, 8 epochs, seeds 11, 22 and 33) come from the earlier phases.</li>
+</ul>
+<p><code>tests/test_appraise_direct.py</code> builds small working examples of every input on CPU. In the commands below the
+paths are shortened; in the lane they point into <code>data/interim/my_appraisal/</code>.</p>
+<pre><code>python -m cpappraise.appraise_direct screen --artifact artifact.jsonl --panel panel.json --out screen/ --config config.json
+python -m cpappraise.appraise_direct approve --artifact artifact.jsonl --panel panel.json --controls controls.jsonl --comparables comparables.jsonl --out approval.json --config config.json
+python -m cpappraise.appraise_direct run --artifact artifact.jsonl --panel panel.json --controls controls.jsonl --comparables comparables.jsonl --approval approval.json --out runs/my_appraisal --config config.json
+</code></pre>
+<ul>
+<li><code>screen</code> checks the panel locally, without a model.</li>
+<li><code>approve</code> writes an approval that binds the digests of the document, panel, recipe, controls and comparables. In a
+  confidential appraisal the document&rsquo;s owner would sign it after reviewing the panel; here you approve your own.
+  Add <code>--allow-numeric</code> if more than a quarter of the answers are numbers. If any input changes, approve again.</li>
+<li><code>run</code> is the lane step. It trains and scores every arm and writes <code>report.json</code> and <code>audit.json</code>.</li>
+</ul>
+<h3 id="route-b-both-models-from-one-script">Route B: both models from one script<a class="headerlink" href="#route-b-both-models-from-one-script" title="Permanent link">#</a></h3>
+<ol>
+<li>Edit <code>SOURCES</code> in <code>scripts/ns_pilot.py</code>: one row with the role <code>train</code> (your document), one <code>control</code>, and rows
+   for the <code>related</code>, <code>background</code> and <code>side</code> documents. <code>prep</code> also expects the pilot&rsquo;s optional second training
+   arm (<code>arm2</code>) and its two Lean repositories. Remove those parts.</li>
+<li>Write <code>data/interim/ns_pilot/probes.json</code> as <code>{"probes": [{"id", "kind", "prompt", "answer"}]}</code>, where <code>kind</code> is
+   <code>verbatim</code>, <code>paraphrase</code> or <code>implication</code>.</li>
+<li>Run <code>python -I scripts/ns_pilot.py prep</code>. It builds <code>data/interim/ns_pilot/inputs.json</code> (training arms and
+   panel), the copy-mask flags, and a sources manifest with hashes and counts.</li>
+<li>Copy <code>configs/lane_1c_ns_olmo13.json</code> and change its step to one epoch, as below.</li>
+</ol>
+<pre><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python scripts/ns_pilot.py olmo --inputs data/interim/ns_pilot/inputs.json --out runs/phase1c/ns_pilot/olmo --seeds 11 22 --epochs 1 --eval-at 1 --lr 1e-4
+</code></pre>
+<h3 id="route-c-blocks-of-papers">Route C: blocks of papers<a class="headerlink" href="#route-c-blocks-of-papers" title="Permanent link">#</a></h3>
+<p>The main experiment&rsquo;s scripts, in order. They select items from <code>data/manifests/postcutoff_candidates.json</code>, so a
+new document enters as a candidate with its citing papers; expect to adapt <code>plan_fetch.py</code> and <code>select_items.py</code>.</p>
+<pre><code>python -I scripts/main_exp/plan_fetch.py --tier 1 &gt; data/interim/main_exp/fetch_tier1.txt
+python -I scripts/main_exp/fetch_html.py --list data/interim/main_exp/fetch_tier1.txt
+python -I scripts/main_exp/select_items.py check
+python -I scripts/main_exp/select_items.py freeze
+python -I scripts/main_exp/plan_wave2.py extra-related &gt; data/interim/main_exp/fetch_wave2.txt
+python -I scripts/main_exp/plan_wave2.py controls &gt; data/interim/main_exp/fetch_ctrl.txt
+python -I scripts/main_exp/plan_wave2.py background &gt; data/interim/main_exp/fetch_bg.txt
+# fetch each of the three lists with fetch_html.py --list
+python -I scripts/main_exp/build_inputs.py texts
+# probe writers follow prompts/main_exp_probe_protocol.md
+python -I scripts/main_exp/build_inputs.py probes
+python -I scripts/main_exp/build_inputs.py blocks
+python -I scripts/main_exp/cpu_smoke.py --block 1 --items 2 --seeds 11
+# dose calibration (Step 2), then freeze your analysis plan and commit it
+python -I scripts/main_exp/make_lanes.py --groups 1,2 3,4 5,6 --est-hours 1.9
+</code></pre>
+<p><code>make_lanes.py</code> writes <code>configs/lane_1c_mx_&lt;k&gt;.json</code> with one step per block:</p>
+<pre><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python -m cpappraise.mainexp.run --block data/interim/main_exp/pods/block_1.olmo2-13b.json --out runs/phase1c/main_exp/olmo2-13b/block_1 --model olmo2-13b --seeds 11,22 --arms A,cfk,cfr,ctrl,bgA,bgC --lr 1e-4 --gradient-checkpointing on
+</code></pre>
+<p>For a plain appraisal without the truth arms, drop <code>cfk</code> and <code>cfr</code> from <code>--arms</code>. The pre-registered analysis
+(<code>scripts/main_exp/analyze.py</code>) also computes the truth contrasts from those arms, so adapt it as well.</p>
+<h3 id="launch-and-watch-a-lane">Launch and watch a lane<a class="headerlink" href="#launch-and-watch-a-lane" title="Permanent link">#</a></h3>
+<pre><code>python scripts/lane.py configs/lane_my_ap_1.json
+nohup bash scripts/lane_patient.sh configs/lane_my_ap_1.json runs/lanes/MY-AP-1.patient.log 120 &quot;NVIDIA A40&quot; &quot;NVIDIA RTX A6000&quot; &quot;NVIDIA L40S&quot; &gt; /dev/null 2&gt;&amp;1 &amp;
+python scripts/runpod_pod.py list
+python scripts/runpod_pod.py cost
+</code></pre>
+<ul>
+<li>Run short lanes with <code>lane.py</code>. Launch long ones detached through <code>lane_patient.sh</code>, which retries the listed GPU
+  types every three minutes until one is free or the deadline, in minutes, passes.</li>
+<li>Watch <code>runs/lanes/&lt;lane&gt;.jsonl</code>. It logs the estimate, the pushed commit, readiness, partial pulls, each finished
+  step, and termination with the ledger&rsquo;s cost.</li>
+<li>Afterward, check with <code>list</code> that no pod of yours is left, and terminate any by id
+  (<code>python scripts/runpod_pod.py terminate &lt;id&gt;</code>). On a shared account, do not use <code>reap</code>: it terminates every
+  <code>cpa-*</code> pod.</li>
+<li>If you stop a lane by hand, make sure its child processes stop too. On Windows, stopping a background shell can
+  leave its children running, and one of them once created a duplicate pod.</li>
+<li>The lane scripts call <code>bash</code>, <code>ssh</code> and <code>tar</code>. On Windows the study used Git Bash.</li>
+</ul>
+<h2 id="step-4-run-the-frontier-model-on-tinker">Step 4: Run the frontier model on Tinker<a class="headerlink" href="#step-4-run-the-frontier-model-on-tinker" title="Permanent link">#</a></h2>
+<p>The Tinker helpers load your API key from an env file and never print it.</p>
+<p><strong>Smoke test first.</strong> For Route B, <code>python -I scripts/ns_pilot.py tinker-smoke</code> trains and scores a few hundred
+tokens. It cost $0.004 in the pilot.</p>
+<p><strong>Route B.</strong> Run with <code>--dry-run</code> first to see the projected cost, then without it. The command refuses to start if
+the spend so far plus the projection would pass <code>--cap</code>.</p>
+<pre><code>python -I scripts/ns_pilot.py tinker --inputs data/interim/ns_pilot/inputs.json --out runs/phase1c/ns_pilot/deepseek --seeds 11 22 --epochs 1 --eval-at 1 --lr &lt;calibrated LR&gt; --cap &lt;dollars&gt; --dry-run
+</code></pre>
+<p><strong>Route C.</strong> Run <code>python -I scripts/main_exp/tinker_run.py --blocks 1 2 3 4 5 6 --dry-run</code>, then the same without
+<code>--dry-run</code>. It reads the calibrated learning rate from <code>runs/phase1c/main_exp/calib/calibration.json</code>, checks the
+projection against the cap, and runs every arm in each block&rsquo;s input.</p>
+<p><strong>Clean up.</strong> Delete the sampler checkpoints, then confirm that Tinker lists none:</p>
+<ul>
+<li>Route B: <code>python -I scripts/ns_pilot.py tinker-cleanup --ledger runs/phase1c/ns_pilot/deepseek/checkpoints.json</code>;</li>
+<li>Route C: <code>python -I scripts/main_exp/tinker_run.py --blocks 1 --cleanup</code>.</li>
+</ul>
+<p><strong>Billing.</strong> <code>python -I scripts/ns_pilot.py tinker-billing</code> (Route B) or <code>tinker_run.py --billing 24</code> (Route C)
+reconciles the spend estimate with Tinker&rsquo;s billing records, which lag by hours.</p>
+<h2 id="step-5-the-increment-run">Step 5: The increment run<a class="headerlink" href="#step-5-the-increment-run" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>What it measures.</strong> What your document adds beyond related work: (background + document) minus (background +
+  control), for each panel tier.</li>
+<li>
+<p><strong>How the main experiment built it.</strong> Two extra arms per item, in <code>src/cpappraise/mainexp/build.py</code>:</p>
+<ul>
+<li><code>bgA</code>: the background papers&rsquo; training sequences, then the document&rsquo;s;</li>
+<li><code>bgC</code>: the same background sequences, then the control packed to the document&rsquo;s profile.</li>
+</ul>
+<p>Each arm trains for one epoch over all its sequences, in a seeded order, at the calibrated learning rate. The
+background is token-identical in both arms, so the difference between them is the document&rsquo;s contribution.</p>
+</li>
+<li>
+<p><strong>Run it</strong> by including the arms: <code>--arms A,ctrl,bgA,bgC</code> on the OLMo lane. <code>tinker_run.py</code> runs every arm that a
+  block&rsquo;s input contains.</p>
+</li>
+<li><strong>Read it</strong> in <code>results.json</code> under H-D, or with <code>scripts/main_exp/tables.py</code>. In the main experiment:<ul>
+<li>recall survived the background in full: OLMo gained +1.34 bits per probe beyond the background, against +1.09
+  alone;</li>
+<li>about half (OLMo) to two-thirds (DeepSeek) of the gain on the document&rsquo;s own follow-up remained.</li>
+</ul>
+</li>
+<li><strong>Routes A and B</strong> do not build these arms. Adding the increment there means building the two arms in code the
+  same way.</li>
+</ul>
+<h2 id="step-6-outputs-and-how-to-read-them">Step 6: Outputs, and how to read them<a class="headerlink" href="#step-6-outputs-and-how-to-read-them" title="Permanent link">#</a></h2>
+<h3 id="where-the-outputs-are">Where the outputs are<a class="headerlink" href="#where-the-outputs-are" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Route A:</strong> <code>report.json</code>, the bounded report, and <code>audit.json</code>, which records code, inputs and timings, in the
+  <code>--out</code> directory.</li>
+<li><strong>Route B:</strong> per-model parts under <code>.../olmo/</code> and <code>.../deepseek/</code>. Then
+  <code>python -I scripts/ns_pilot.py analyze --out runs/phase1c/ns_pilot --eval-at 1</code> writes <code>results.json</code> and
+  <code>effects.json</code>, and <code>python -I scripts/ns_pilot.py tables</code> prints the tables.</li>
+<li><strong>Route C:</strong> <code>python -I scripts/main_exp/analyze.py</code> writes <code>results.json</code> and <code>effects.json</code>. <code>posthoc.py</code> adds
+  descriptive extras, including the dose per paper, and <code>tables.py</code> prints the tables.</li>
+<li><strong>Before you commit,</strong> scan the outputs for leaked text. <code>cpappraise.privacy.scan_for_leaks</code> looks for 8-word runs
+  of your inputs; Route C also has <code>scripts/main_exp/leak_scan.py</code>.</li>
+</ul>
+<h3 id="reading-a-tier">Reading a tier<a class="headerlink" href="#reading-a-tier" title="Permanent link">#</a></h3>
+<p>Route A&rsquo;s report gives these fields for each tier. Routes B and C report the same ideas under similar names.</p>
+<ul>
+<li><code>base</code>: the untrained model&rsquo;s level, for example bits per recall answer.</li>
+<li><code>ctrl_gain</code>: what training on the control did. It measures the effect of any training of this size, and it can be
+  negative.</li>
+<li><code>net</code>: the document&rsquo;s gain minus the control&rsquo;s, averaged over items and seeds. Positive means the document made
+  the tier easier for the model.</li>
+<li><code>ci_lo</code> and <code>ci_hi</code>: an approximate interval, the net plus or minus two standard errors, combining item and seed
+  spread.</li>
+<li><code>pct</code>: the percentile among comparables, in deciles. It is empty with fewer than five comparables.</li>
+<li><code>status</code>: <code>gain</code> or <code>loss</code> only when the interval excludes zero and the net reaches a minimum effect (0.1 bits per
+  probe for recall, 0.002 bits per token for text). Otherwise <code>inconclusive</code>. A tier never reads &ldquo;not learned&rdquo;:
+  inconclusive means not detected with this recipe, panel and model.</li>
+</ul>
+<h3 id="sizes-to-expect">Sizes to expect<a class="headerlink" href="#sizes-to-expect" title="Permanent link">#</a></h3>
+<p>From the main experiment (30 papers, one light dose):</p>
+<ul>
+<li><strong>Recall:</strong> +0.81 bits per probe net of the control for OLMo-2-13B, and +0.46 for DeepSeek-V3.1. One bit means
+  the model became twice as likely to give the exact answer.</li>
+<li><strong>Follow-ups:</strong> the document&rsquo;s own citing paper became 0.0097 (OLMo) and 0.0096 (DeepSeek) bits per token easier,
+  about 0.4% of its base difficulty. Small numbers are normal at a light dose.</li>
+<li><strong>Side text</strong> stayed near zero. A clear loss there flags damage from the training.</li>
+</ul>
+<h3 id="comparing-models">Comparing models<a class="headerlink" href="#comparing-models" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Check the achieved dose first.</strong> If the two models&rsquo; drops on the document&rsquo;s own text differ, their profiles are
+  not comparable. Route C reports the dose in <code>results.json</code> and <code>posthoc.json</code>.</li>
+<li><strong>Compare shape, not size.</strong> The two models ranked the 30 papers alike on recall, follow-ups and field transfer
+  (rank correlations 0.68 to 0.75). But DeepSeek&rsquo;s recall gains were 0.57 times OLMo&rsquo;s.</li>
+</ul>
+<h3 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">#</a></h3>
+<ul>
+<li>One light dose of LoRA. LoRA probably understates what full training would teach.</li>
+<li>The probes come from agents, not from the people who would use the result.</li>
+<li>The choice of control matters. The behavior test&rsquo;s report suggests a same-field control.</li>
+<li>The truth test on later papers&rsquo; text did not pass cleanly. In OLMo, a copy of a paper with its key claims altered
+  made the citing sentences as predictable as the true paper did. An appraisal shows what a model learned, not
+  whether it is true.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#what-you-will-measure">What you will measure</a></li>
+<li><a href="#choose-a-route">Choose a route</a></li>
+<li><a href="#before-you-start">Before you start</a></li>
+<li><a href="#step-1-gather-the-inputs">Step 1: Gather the inputs</a><ul>
+<li><a href="#the-document">The document</a></li>
+<li><a href="#a-control-of-the-same-length">A control of the same length</a></li>
+<li><a href="#comparables-optional">Comparables (optional)</a></li>
+<li><a href="#probes">Probes</a></li>
+<li><a href="#follow-ups-related-documents-and-side-text">Follow-ups, related documents and side text</a></li>
+<li><a href="#background-papers-for-the-increment">Background papers (for the increment)</a></li>
+</ul>
+</li>
+<li><a href="#step-2-calibrate-the-dose-for-each-model">Step 2: Calibrate the dose for each model</a></li>
+<li><a href="#step-3-run-the-open-model-on-runpod">Step 3: Run the open model on RunPod</a><ul>
+<li><a href="#write-a-lane-config">Write a lane config</a></li>
+<li><a href="#route-a-the-direct-protocol">Route A: the direct protocol</a></li>
+<li><a href="#route-b-both-models-from-one-script">Route B: both models from one script</a></li>
+<li><a href="#route-c-blocks-of-papers">Route C: blocks of papers</a></li>
+<li><a href="#launch-and-watch-a-lane">Launch and watch a lane</a></li>
+</ul>
+</li>
+<li><a href="#step-4-run-the-frontier-model-on-tinker">Step 4: Run the frontier model on Tinker</a></li>
+<li><a href="#step-5-the-increment-run">Step 5: The increment run</a></li>
+<li><a href="#step-6-outputs-and-how-to-read-them">Step 6: Outputs, and how to read them</a><ul>
+<li><a href="#where-the-outputs-are">Where the outputs are</a></li>
+<li><a href="#reading-a-tier">Reading a tier</a></li>
+<li><a href="#sizes-to-expect">Sizes to expect</a></li>
+<li><a href="#comparing-models">Comparing models</a></li>
+<li><a href="#limits">Limits</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

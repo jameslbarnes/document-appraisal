@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Main experiment: 30 papers · Measuring what a document teaches a model</title>
+<meta name="description" content="Across 30 new papers, the open and the frontier model agree on which papers contribute most, and each paper makes its own follow-up easier to predict; the test cannot tell true claims from altered ones.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a class="active" href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Main experiment: 30 papers</h1>
+      <p class="summary">Across 30 new papers, the open and the frontier model agree on which papers contribute most, and each paper makes its own follow-up easier to predict; the test cannot tell true claims from altered ones.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>Do the pilots&rsquo; findings hold across many papers and two model families? We trained OLMo-2-13B (open) and
+DeepSeek-V3.1 (frontier) on 30 papers they had not seen, with four pre-registered questions. Does the open model rank
+papers the way the frontier model does (H-A)? Does a paper make its own follow-up, the later paper that cites it,
+easier to predict (H-B)? Does the true paper beat a copy with its key claims altered (H-C)? Does a paper add something
+beyond three earlier papers by other authors (H-D)?</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Papers.</strong> 30 arXiv papers: CS/ML 15, physics 5, quantitative biology 5, math 5. 21 were posted after 1 August 2025
+  and are new to both models; 9 may be in DeepSeek-V3.1&rsquo;s training data. 9 are <em>landmarks</em>, among the most-cited 10%
+  of their field.</li>
+<li><strong>Reading.</strong> One epoch of <a href="../glossary.html">LoRA</a> per paper, at a matched <a href="../glossary.html">dose</a>: the paper&rsquo;s own
+  loss fell 6.23% (OLMo) and 6.25% (DeepSeek).</li>
+<li><strong>Arms</strong>, two seeds each (276 runs per model): the true paper; an <em>altered copy</em> with 5–20 key numbers and
+  comparison words changed by script; a <em>random-edit copy</em> with as many edits elsewhere; and a
+  <a href="../glossary.html">control</a> of unrelated papers of the same length.</li>
+<li><strong>Tests.</strong> 12 recall probes per paper; 746 belief probes (does the model prefer the true or the altered value of a
+  claim?); the follow-up&rsquo;s text, with copied phrases masked out (<a href="../glossary.html">copy mask</a>); and the follow-ups of
+  the other papers in the batch (field transfer).</li>
+<li><strong>Unique contribution.</strong> 9 papers were also read after their three most-cited recent references by other authors.
+  The <a href="../glossary.html">increment</a> is what the paper adds beyond them.</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<p>Pre-registered verdicts:</p>
+<ul>
+<li><strong>H-A, open = frontier: SUPPORTED.</strong> The models rank papers alike on facts absorbed (rank correlation 0.75),
+  follow-up gain (0.74) and field transfer (0.68). Belief disagreed (−0.04): it barely moved in either model. Sizes
+  differ: the frontier model absorbs 0.57 times as much specific content, but its follow-up gain is 0.94 times as
+  large.</li>
+<li><strong>H-B, <a href="../glossary.html">anticipation</a>: SUPPORTED in both models.</strong> A paper makes its own follow-up more
+  predictable than other papers&rsquo; follow-ups (the T* statistic). Net of the control, the follow-up gains about 0.4% of
+  its difficulty, and the sentences that cite the paper gain about 1%.</li>
+<li><strong>H-C, truth: not established.</strong> Belief probes track whichever claims were trained: after the altered copy, the
+  models prefer the altered values (+0.08 bits per claim in both). That is learning, not truth. On citing
+  sentences, OLMo shows nothing. DeepSeek passes the rule with the wrong pattern: the random-edit copy beat the true
+  paper, which did not beat the altered one. By rule, H-C was PARTIAL in OLMo and SUPPORTED in DeepSeek; the report
+  reads neither as evidence about truth.</li>
+<li><strong>H-D: the recall increment is above zero in both models</strong> (+1.34 and +0.85 bits per question). About half (OLMo)
+  to two-thirds (DeepSeek) of the follow-up gain also survives the predecessors.</li>
+</ul>
+<p>Descriptive, examined afterwards:</p>
+<ul>
+<li><strong>An altered copy scores the same as the true paper.</strong> On recall, the true, altered and random-edit versions each
+  add 0.81 bits per question in OLMo, and the follow-up gain is identical.</li>
+<li><strong>On the altered claims, the fake values registered more strongly than the true ones did.</strong> The altered copy moved
+  OLMo 0.07 bits toward the fakes; the true paper moved it 0.04 bits toward the truth. In DeepSeek the altered copy
+  moved it 0.13 bits toward the fakes, and the true paper moved it slightly the wrong way (−0.05). We have not
+  tested why.</li>
+<li><strong>Famous papers taught 2–3 times more facts but did not help their follow-ups more.</strong> Landmarks gained 1.45 bits per
+  question against 0.54 for ordinary papers in OLMo, and 0.72 against 0.35 in DeepSeek. Their T* was smaller in
+  OLMo (+0.0023 against +0.0050) and about the same in DeepSeek (+0.0060 against +0.0057).</li>
+<li><strong>Being absorbed is not the same as helping later work.</strong> The clearest case is a data release. DESI Data Release
+  1 ranks 3rd of 30 on facts in both models, but 25th and 29th on its follow-up, which uses it only as a data source.
+  This is one case, not a rule. The top
+  follow-up gain in both models is a WebGPU privacy study after a WebGPU performance paper.</li>
+</ul>
+<p><img alt="Scatter plot of the 30 papers in the open model. Horizontal axis: bits gained per test question, from 0.1 to 2.9. Vertical axis: how much easier the follow-up paper became, from 0% to 1%. Ringed landmark papers sit to the right but not higher; DESI Data Release 1 is far right and near the bottom." src="../assets/img/absorbed_vs_followup.svg" /></p>
+<p><em>What stuck, and what it did for the follow-up, per paper (open model). Follow-up gain is net of the control, as a
+share of the model&rsquo;s average surprise on follow-up text.</em></p>
+<p><img alt="Scatter plot of bits gained per test question for the 30 papers, open model on the horizontal axis and frontier model on the vertical axis. The points rise together, mostly below the equal-gain line." src="../assets/img/open_vs_frontier.svg" /></p>
+<p><em>Facts absorbed per paper in the two models. Spearman rank correlation 0.75 (95% interval 0.49 to 0.90). Most points
+sit below the equal-gain line: at the same dose, the frontier model takes in less.</em></p>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>An open model is a fair stand-in for the shape of an appraisal:</strong> where a document contributes and how it ranks
+  against others. It does not give absolute sizes on a frontier model.</li>
+<li><strong>A report can claim three things:</strong> the model absorbs your specific content; your document makes later work that
+  builds on it more predictable; part of this is yours alone.</li>
+<li><strong>It cannot claim the content is true.</strong> The measurement rewards what a paper says, true or not.</li>
+<li><strong>Report facts absorbed and help to later work separately.</strong> A famous paper or a data release can top one and not
+  the other.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>OLMo-2-13B</th>
+<th>DeepSeek-V3.1</th>
+<th>Between models / verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dose: drop in the paper&rsquo;s own loss</td>
+<td>6.23%</td>
+<td>6.25%</td>
+<td>per-paper ρ 0.97 [0.91, 0.99]</td>
+</tr>
+<tr>
+<td>Facts absorbed, net of control (bits per question)</td>
+<td>+0.811</td>
+<td>+0.463</td>
+<td>ρ 0.75 [0.49, 0.90]</td>
+</tr>
+<tr>
+<td>Own follow-up gain, net of control (mbit per byte)</td>
+<td>+1.90</td>
+<td>+1.78</td>
+<td>ρ 0.74 [0.53, 0.86]</td>
+</tr>
+<tr>
+<td>Field transfer, net of control (mbit per byte)</td>
+<td>+1.09</td>
+<td>+0.84</td>
+<td>ρ 0.68 [0.40, 0.86]</td>
+</tr>
+<tr>
+<td>Belief, net of control (bits per claim)</td>
+<td>+0.035</td>
+<td>−0.045</td>
+<td>ρ −0.04 [−0.44, 0.36]</td>
+</tr>
+<tr>
+<td><strong>H-A</strong> open = frontier</td>
+<td></td>
+<td></td>
+<td><strong>SUPPORTED</strong> (3 of 4 tiers)</td>
+</tr>
+<tr>
+<td><strong>H-B</strong> T* (bits per token)</td>
+<td>+0.0042 [+0.0029, +0.0053], p = 0.0014</td>
+<td>+0.0058 [+0.0040, +0.0078], p = 0.0002</td>
+<td><strong>SUPPORTED</strong> in both</td>
+</tr>
+<tr>
+<td><strong>H-C1</strong> citing sentences: random-edit minus altered copy (bits per token)</td>
+<td>+0.0004 [−0.0011, +0.0019]</td>
+<td>+0.0106 [+0.0040, +0.0185]</td>
+<td>OLMo no; DeepSeek passes by rule, wrong pattern</td>
+</tr>
+<tr>
+<td><strong>H-C2</strong> belief: random-edit minus altered copy (bits per claim)</td>
+<td>+0.081 [+0.053, +0.116]</td>
+<td>+0.080 [+0.042, +0.133]</td>
+<td>tracks claims, not truth</td>
+</tr>
+<tr>
+<td><strong>H-D</strong> recall increment over 3 predecessors (bits per question)</td>
+<td>+1.34 [+0.94, +1.79]</td>
+<td>+0.85 [+0.67, +1.08]</td>
+<td>above zero in both</td>
+</tr>
+<tr>
+<td>Follow-up increment (bits per token; share of the paper alone)</td>
+<td>+0.0041 [+0.0005, +0.0075] (45%)</td>
+<td>+0.0075 [+0.0034, +0.0113] (71%)</td>
+<td>descriptive</td>
+</tr>
+<tr>
+<td>Recall: true / altered / random-edit, net of control (bits per question)</td>
+<td>+0.81 / +0.81 / +0.81</td>
+<td>+0.46 / +0.45 / +0.45</td>
+<td>descriptive</td>
+</tr>
+</tbody>
+</table>
+<p>Units: <a href="../glossary.html">bits</a> per question is surprise removed from a probe&rsquo;s answer (1 bit means twice as likely).
+Bits per token and mbit (thousandths of a bit) per byte measure surprise removed from text. ρ is the Spearman rank
+correlation across the 30 papers. Brackets are 95% <a href="../glossary.html">bootstrap intervals</a>.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>One light dose:</strong> LoRA, one epoch, about a 6% drop in the paper&rsquo;s own loss. Effects are small, and heavier
+  training can change the profile, as in the <a href="04-ns-pilot.html">Navier–Stokes pilot</a>.</li>
+<li><strong>DeepSeek-V3.1 is a post-trained chat model</strong> scored on raw text, so cross-model comparisons use ranks and per-byte
+  measures only.</li>
+<li><strong>Altered copies change only numbers and comparison words.</strong> Only 8 papers had such a claim in a citing sentence,
+  and citing text is sparse (median about 70 tokens per paper).</li>
+<li><strong>Probes were written by AI agents (Claude)</strong> from the papers under a frozen protocol, not by independent buyers.</li>
+<li><strong>H-D covers 9 papers in two fields</strong> (CS/ML and physics).</li>
+<li><strong>The descriptive findings rest on few papers.</strong> Landmarks are also longer on average (about 18,000 against 11,800
+  tokens), which may explain part of their larger fact gain.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<p>Pre-registered 20 October 2026; reported 21 October 2026. Tinker (DeepSeek): $39.35, an estimate from token counts.
+RunPod (OLMo): $3.68. $43.0 in all, against a $90 cap.</p>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<ul>
+<li>Pre-registration and report: <code>planning/MAIN_EXPERIMENT_PREREG.md</code>, <code>planning/MAIN_EXPERIMENT_REPORT.md</code>.</li>
+<li>Numbers: <code>runs/phase1c/main_exp/</code> (<code>results.json</code>, <code>effects.json</code>, <code>posthoc.json</code>, <code>tables.md</code>); frozen items in
+  <code>data/manifests/main_exp_items.json</code>.</li>
+<li>Code: <code>src/cpappraise/mainexp/</code>, <code>scripts/main_exp/</code> (<code>calibrate.py</code>, <code>tinker_run.py</code>, <code>analyze.py</code>, <code>posthoc.py</code>,
+  <code>tables.py</code>), <code>tests/test_main_exp.py</code>, probe protocol <code>prompts/main_exp_probe_protocol.md</code>, lane configs
+  <code>configs/lane_1c_mx_cal.json</code> and <code>configs/lane_1c_mx_1.json</code> to <code>_3.json</code>.</li>
+<li>Chart data: <code>data/interim/main_exp/reports/per_paper.json</code>, local and not committed, like the paper texts, edited
+  copies and probes.</li>
+<li>To rerun or extend: <a href="../reproduce/index.html">Reproduce</a>. A plain-language report built from these data:
+  <a href="09-sample-report.html">What a report could look like</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

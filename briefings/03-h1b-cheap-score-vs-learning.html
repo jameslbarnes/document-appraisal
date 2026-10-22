@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H1b: does the cheap score predict learning? · Measuring what a document teaches a model</title>
+<meta name="description" content="No: on 288 segments of real research records, the 13B score predicted the 13B&#x27;s own LoRA gain only weakly (0.28 against a pre-registered bar of 0.50), and a simpler in-context-gain baseline did better (0.44), so the cheap score cannot stand in for training.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a class="active" href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>H1b: does the cheap score predict learning?</h1>
+      <p class="summary">No: on 288 segments of real research records, the 13B score predicted the 13B&#x27;s own LoRA gain only weakly (0.28 against a pre-registered bar of 0.50), and a simpler in-context-gain baseline did better (0.44), so the cheap score cannot stand in for training.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>The 13B score can spot a planted finding (<a href="02-phase1b-gate-13b-32b.html">Phase 1b</a>). Does it also predict what the model actually learns from a real document? H1b compared the cheap score with a gold standard: briefly fine-tune the model on each document and measure what it learned.</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Documents.</strong> 288 segments of about 2,048 tokens from real public research records (176 streams, four sources, 201 segments from one forum). Each was paired with its held-out continuation: the next ~1,024 tokens of the same record.</li>
+<li><strong>Cheap score (U).</strong> The 13B&rsquo;s compression progress (how much each passage makes the following text easier to predict, copying excluded), summed over every passage per 1,000 bytes of text.</li>
+<li><strong>Gold standard and dose.</strong> We fine-tuned OLMo-2-13B on each segment with <a href="../glossary.html">LoRA</a>, which trains a small set of added weights while the model&rsquo;s own weights stay frozen. Dose (how hard it was trained): 8 steps at learning rate 1e-4, chosen by a pre-registered rule in a 30-unit pilot, with 3 seeds (864 runs). The <em>gain</em> is the drop in surprise on the continuation (bits per token, ignoring words copied from the segment), minus the drop after the same training on matched Wikipedia <em>controls</em>, so the generic effect of training cancels.</li>
+<li><strong>Pre-registered tests.</strong><ul>
+<li>T4: the rank correlation between U and the gain, computed within each source and pooled (ρ_ws), must reach 0.50 with a lower bound of at least 0.30.</li>
+<li>T5: U must beat each of 15 cheap baselines significantly (Holm-corrected for multiple tests), and the best of them by at least 0.10.</li>
+</ul>
+</li>
+<li><strong>Also reported.</strong> U against a 1B learner&rsquo;s gain (secondary). At James&rsquo;s request, a RHO-LOSS-style <em>excess loss</em>: a segment&rsquo;s loss under the learner minus its loss under a larger reference model (exploratory, D45).</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Verdict: NO-GO, &ldquo;H1b failed: T4/T5.&rdquo;</strong></li>
+<li><strong>T4 failed.</strong> ρ_ws between U and the gain was 0.278 (95% interval 0.154–0.388), against the bar of 0.50.</li>
+<li><strong>T5: a baseline did better.</strong> The in-context gain (B3: how much better a segment&rsquo;s passages are predicted in context than alone) reached 0.442, beating U by 0.164. Six more were statistically indistinguishable from U, including word overlap within the segment (0.394). U beat only 5 of the 15 after correction.</li>
+<li><strong>Not seed noise.</strong> The gain was reproducible across seeds (ICC 0.999). Other error sources, such as using one continuation per segment, were not measured.</li>
+<li><strong>The link is real but modest.</strong> Six of eight pre-registered secondary variants were significantly above zero (0.19–0.33); four of eight were if two that rely on post-freeze contamination shares are set aside (D46).</li>
+<li><strong>Smaller learner.</strong> U against the 1B&rsquo;s gain gave 0.192 (0.066–0.315), below T4&rsquo;s bar.</li>
+<li><strong>Excess loss (exploratory).</strong> With a 32B reference, it showed no detectable signal for the 13B&rsquo;s gain (−0.057). With the 1B as learner and the much stronger 13B as reference, it reached 0.271. A pre-specified combination with U did not help (0.144 for the 13B; D50).</li>
+</ul>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>You cannot skip training.</strong> None of the cheap scores tested reached the 0.50 bar: U reached 0.278 and the best baseline 0.442. As the Phase 1b summary puts it, &ldquo;detecting planted novelty is not the same as predicting learning.&rdquo;</li>
+<li>To know what a document teaches a model, measure it directly with a short fine-tune and matched controls, as the follow-on protocol is designed to do (<code>REPORT_1B.md</code> §10).</li>
+<li>The yardstick may be part of the story (interpretation). Gain on a segment&rsquo;s own continuation may reward self-similar records, which the winning baseline may track (untested). A better yardstick would also test transfer, recall of the new content, and truth.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value (95% interval unless noted)</th>
+<th>Bar</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T8: seed agreement of the gain, ICC</td>
+<td>0.9992</td>
+<td>≥ 0.50</td>
+<td>PASS</td>
+</tr>
+<tr>
+<td>T4: ρ_ws(U, 13B LoRA gain)</td>
+<td>0.278 (0.154–0.388)</td>
+<td>≥ 0.50, lower bound ≥ 0.30</td>
+<td><strong>FAIL</strong></td>
+</tr>
+<tr>
+<td>T5: U minus best baseline (B3, ρ_ws 0.442)</td>
+<td>−0.164 (90%: −0.241 to −0.093)</td>
+<td>≥ +0.10, beat all 15</td>
+<td><strong>baseline better</strong></td>
+</tr>
+<tr>
+<td>Excess loss, 13B minus 32B, vs 13B gain (ρ_ws)</td>
+<td>−0.057 (−0.168 to 0.055)</td>
+<td>exploratory</td>
+<td>no signal detected</td>
+</tr>
+<tr>
+<td>Excess loss, 1B minus 13B, vs 1B gain (ρ_ws)</td>
+<td>0.271 (0.144–0.395)</td>
+<td>exploratory</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Mean gain on the continuation</td>
+<td>+0.042 bits/token (0.037–0.047)</td>
+<td>descriptive</td>
+<td>positive for 95.5% of segments</td>
+</tr>
+</tbody>
+</table>
+<p>ρ_ws runs from −1 to 1 (0: no relation; 1: same order). ICC is the share of variation in the gain due to the segment rather than the seed. A drop of one bit per token means the model gives each token twice the probability.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li>One dose and one held-out continuation per segment. In the pilot, longer or faster training learned the segment&rsquo;s facts better but made the continuation worse.</li>
+<li>Sources were unbalanced. Per-source ρ was 0.352 for the forum (201 segments) and 0.062 for the 72 lab-notebook segments.</li>
+<li>The two other planned target kinds gave no support: related later documents were not built, and planted-fact probes showed no association detected (−0.042).</li>
+<li>The Verifier&rsquo;s replication with new seeds was not run, since no GO was possible (D51).</li>
+<li>The excess-loss references were off-the-shelf larger models, unlike the held-out-trained reference of <a href="https://arxiv.org/abs/2206.07137">RHO-LOSS</a> (Mindermann et al., 2022), and the two configurations also differ in learner.</li>
+<li>Truth was not tested. By design, the score measures learnable new content, not truth.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<ul>
+<li>2026-10-19 to 2026-10-20. The H1b code was frozen (tag FZ1B-3, 2026-10-20T01:10:03Z UTC) before the pilot scored any study data.</li>
+<li>Segment scoring cost $3.12 (estimate about $3.44). LoRA runs cost $39.56 against an estimate of about $26.27, including $24.59 lost to a stopped pilot and a failed pilot (D47, D48); $14.97 without them. The exploratory excess-loss lane cost $0.73.</li>
+<li>Phase 1b total: $61.64 of an $80 cap, including the $18.22 gate stage (stage figures are rounded). Cumulative with Phase 1&rsquo;s $1.93: $63.57.</li>
+</ul>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<p>Paths are relative to the study repository (cp-appraisal).</p>
+<ul>
+<li><strong>Reports:</strong> <code>REPORT_1B.md</code> (§1–§4, §7–§10), <code>SUMMARY_1B.md</code>, <code>PREREG_1B.md</code> (§6–§7), <code>PREREGISTRATION.md</code> (§3.8–§3.9, §7), <code>CHECKINS.md</code> (Phase 1b check-in 3), <code>DECISION_LOG.md</code> (D44–D51), <code>planning/critique_methodology_report1b.md</code>, <code>planning/VERIFIER_NUMBER_CHECK_1B.md</code>.</li>
+<li><strong>Results:</strong> <code>runs/phase1b/H1b/h1.json</code>, <code>runs/phase1b/H1b/h1b.json</code>, <code>runs/phase1b/H1b/h1b_sec/</code>, <code>runs/phase1b/H1b/rho/rho.json</code>, <code>runs/phase1b/rho/</code>, <code>runs/phase1b/pilot13/pilot_choice.json</code>, <code>runs/phase1b/contamination/ladder_shares.json</code>, <code>runs/runpod_ledger.jsonl</code>.</li>
+<li><strong>Code and configs:</strong> <code>src/cpappraise/finetune.py</code> (LoRA gold standard), <code>src/cpappraise/analysis/h1.py</code> (T4, T5 and secondary tests), <code>src/cpappraise/baselines.py</code>, <code>scripts/run_h1b.py</code>, <code>scripts/h1b_precompute_baselines.py</code>, <code>scripts/pilot_by_source.py</code>, <code>scripts/h1bx_orchestrate.py</code>, <code>scripts/rho_baseline.py</code>, <code>configs/finetune_pilot_13b.json</code>, <code>configs/lane_h1b_*.json</code>, <code>configs/lane_h1bx_*.json</code>.</li>
+<li>To rerun, see <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

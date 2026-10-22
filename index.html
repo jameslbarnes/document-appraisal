@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measuring what a document teaches a model · Measuring what a document teaches a model</title>
+<meta name="description" content="How to tell someone, believably, what their paper, notes or agent traces add to an AI model, what four days of experiments taught us, and a research agenda for making it real.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a class="active" href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Measuring what a document teaches a model</h1>
+      <p class="summary">How to tell someone, believably, what their paper, notes or agent traces add to an AI model, what four days of experiments taught us, and a research agenda for making it real.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>If you give a document to an AI model, what does the model learn from it that it did not already know? How much of
+that is <em>yours</em> rather than something it could have learned elsewhere? And can anyone check the answer without being
+handed the document?</p>
+<p>This matters in two directions:</p>
+<ul>
+<li><strong>Contributors</strong> want credit and a say. Researchers, writers and the groups that represent them want to know what
+  their work adds to the models built on it, and to bargain from evidence rather than guesswork.</li>
+<li><strong>Buyers</strong> want to try before they buy. A lab licensing data cannot judge its value without seeing it, and once
+  they have seen it they no longer need to pay for it. This is Arrow&rsquo;s information paradox.
+  <a href="related-work.html">NDAI Agreements</a> proposes secure enclaves as a way out. This study asks what the measurement
+  inside the enclave should be.</li>
+</ul>
+<h2 id="the-short-answer-so-far">The short answer so far<a class="headerlink" href="#the-short-answer-so-far" title="Permanent link">#</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Five findings</p>
+<ol>
+<li><strong>Measure, don&rsquo;t ask.</strong> A model&rsquo;s opinion of a document&rsquo;s novelty is unreliable and prone to flattery. Cheap,
+   training-free scores failed a pre-registered test: they predicted what models actually learn only weakly.
+   (<a href="briefings/03-h1b-cheap-score-vs-learning.html">briefing</a>)</li>
+<li><strong>A controlled with/without comparison works.</strong> Train one copy of a model on the document and another on a
+   matched control document, then compare the two. It costs about $1 per document across an open and a frontier
+   model. (<a href="method.html">method</a>)</li>
+<li><strong>It shows what a document teaches, and how much that helps later work.</strong> Specific content is reliably
+   detected. Later papers that build on the document become easier for the model to predict. One reading
+   barely changes <em>how</em> a model approaches problems.
+   (<a href="briefings/07-main-experiment.html">main experiment</a>, <a href="briefings/08-ns-behavior.html">Navier–Stokes test</a>)</li>
+<li><strong>An open model gives the same relative picture as a frontier model</strong> once the training amount is matched.
+   Absolute sizes differ.</li>
+<li><strong>It cannot tell true from false.</strong> A copy of a paper with altered numbers scores the same as the real one.
+   Measurement fixes flattery, not fabrication.</li>
+</ol>
+</div>
+<h2 id="what-is-on-this-site">What is on this site<a class="headerlink" href="#what-is-on-this-site" title="Permanent link">#</a></h2>
+<div class="cards">
+<div class="card"><strong><a href="method.html">The method</a></strong>The with/without design, controls, matched
+training amounts, what is tested, and what a report should say.</div>
+<div class="card"><strong><a href="lessons.html">What we learned</a></strong>Nine lessons about appraisal, each tied
+to the evidence.</div>
+<div class="card"><strong><a href="briefings/index.html">Briefings</a></strong>One page per experiment: the question,
+what we did, what happened, what it means, and the numbers.</div>
+<div class="card"><strong><a href="agenda.html">Research agenda</a></strong>What it would take to make real
+appraisal possible, as workstreams with first experiments and costs.</div>
+<div class="card"><strong><a href="reproduce/index.html">Reproduce and extend</a></strong>The code map, runbooks,
+costs, and the agent prompts that ran each experiment.</div>
+<div class="card"><strong><a href="ethics.html">Data, consent and limits</a></strong>What data we used, what we
+withheld, and what not to claim.</div>
+</div>
+
+<h2 id="using-this-on-your-own-work">Using this on your own work<a class="headerlink" href="#using-this-on-your-own-work" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Appraise a public document</strong> with the open model, using the existing code: see the
+  <a href="reproduce/run-an-appraisal.html">runbook</a>. It costs cents to about a dollar per document.</li>
+<li><strong>Bring your own tests.</strong> The questions you would use to decide whether a model got better at your work are the most
+  useful extension. See W1 in the <a href="agenda.html#w1-behavior-and-task-tests">research agenda</a>.</li>
+<li><strong>Run it confidentially,</strong> inside an enclave, with only bounded numbers coming out. See
+  <a href="agenda.html#w4-confidential-appraisal-in-an-enclave">W4</a>.</li>
+<li><strong>Reuse the agent prompts</strong> that planned, built, reviewed and ran each experiment: see
+  <a href="reproduce/prompts/index.html">agent prompts</a>.</li>
+</ul>
+<h2 id="how-the-study-ran">How the study ran<a class="headerlink" href="#how-the-study-ran" title="Permanent link">#</a></h2>
+<p>Over four days (18–21 October 2026), AI agents ran the experiments under James Barnes&rsquo;s direction. A lead session
+planned the work, and sub-agents built code, wrote test items and ran jobs on rented GPUs and Thinking Machines&rsquo; Tinker
+service. Adversary agents attacked the methodology. Verifier agents re-derived the numbers for Phases 1 and 1b; the
+later experiments have not had a verifier pass yet. Total compute spend was about $140.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Question</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="briefings/01-phase1-cheap-score.html">Phase 1</a></td>
+<td>Can a cheap score spot new findings in a small model?</td>
+<td>No (NO-GO at 1B)</td>
+</tr>
+<tr>
+<td><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b</a></td>
+<td>At larger scale?</td>
+<td>Yes at 13B; no at 32B, within noise</td>
+</tr>
+<tr>
+<td><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b</a></td>
+<td>Does the cheap score predict what a model learns?</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></td>
+<td>Does an open model learn what a frontier model learns from one landmark paper?</td>
+<td>Yes, at a light dose</td>
+</tr>
+<tr>
+<td><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></td>
+<td>Does reading a paper help with the later work that cites it?</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="briefings/06-highlighter.html">Highlighter</a></td>
+<td>Can we map which passages are new to a model?</td>
+<td>Not as built</td>
+</tr>
+<tr>
+<td><a href="briefings/07-main-experiment.html">Main experiment</a></td>
+<td>Do these findings hold across 30 papers and two model families?</td>
+<td>Mostly; truth is not established</td>
+</tr>
+<tr>
+<td><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></td>
+<td>Does one reading change how a model attacks problems?</td>
+<td>Barely</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Read these as research notes</p>
+<p>The code is research-grade, and AI agents wrote the test questions under frozen protocols. The results come from
+two model families (OLMo-2-13B and DeepSeek-V3.1), light training doses, and 30 papers plus one landmark case.
+Where a note here and a report in the repository disagree, the report is right.</p>
+</div>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#the-short-answer-so-far">The short answer so far</a></li>
+<li><a href="#what-is-on-this-site">What is on this site</a></li>
+<li><a href="#using-this-on-your-own-work">Using this on your own work</a></li>
+<li><a href="#how-the-study-ran">How the study ran</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

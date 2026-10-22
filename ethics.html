@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data, consent and limits · Measuring what a document teaches a model</title>
+<meta name="description" content="What data the study used, what it withheld, how it handled private material, and what these results do not show.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a class="active" href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Data, consent and limits</h1>
+      <p class="summary">What data the study used, what it withheld, how it handled private material, and what these results do not show.</p>
+<h2 id="data-we-used">Data we used<a class="headerlink" href="#data-we-used" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Public papers, for internal measurement only.</strong> We trained models on public papers (mostly arXiv), measured the
+  effects, and discarded the trained weights. We do not redistribute paper texts or trained weights. Sources are
+  recorded in manifests (ids, licenses, hashes).</li>
+<li><strong>Private material only with consent.</strong> It is processed only on GPUs we rent directly and never sent to third-party
+  training APIs. Results for private documents are not published.</li>
+<li><strong>Contained test texts.</strong> Phase 1 used short synthetic &ldquo;findings&rdquo; inserted into real documents. Later tests used
+  script-altered copies of papers. These texts stay local and are never published or quoted. The designs are
+  described abstractly.</li>
+<li><strong>Numbers-only outputs.</strong> The repository commits numbers, not texts, test items or model answers.</li>
+</ul>
+<h2 id="an-uncomfortable-fact">An uncomfortable fact<a class="headerlink" href="#an-uncomfortable-fact" title="Permanent link">#</a></h2>
+<p>This study did what it studies. It trained models on other researchers&rsquo; papers without asking them. It was
+measurement only, with no redistribution, but the authors were not consulted. The site names papers when reporting
+results, as any results table would. The sample report in particular is an illustration built from experiment data;
+its authors were not involved. If appraisal becomes a real practice, consent should come first. That is part of the
+<a href="agenda.html">agenda</a>.</p>
+<h2 id="what-these-results-do-not-show">What these results do not show<a class="headerlink" href="#what-these-results-do-not-show" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Truth.</strong> The measurement cannot tell true claims from false ones.</li>
+<li><strong>Value in money.</strong> It measures what models learn, relative to other documents, not what that is worth.</li>
+<li><strong>Behavior at scale.</strong> One reading barely changes behavior. Effects at heavier training, or from many documents,
+  are untested here.</li>
+<li><strong>Generality beyond two model families.</strong> OLMo-2-13B and DeepSeek-V3.1, both with LoRA training, which probably
+  understates effects.</li>
+<li><strong>Independent test writing.</strong> AI agents wrote the probes and items from the documents under frozen protocols, with
+  checkers. Buyer-written tests could read differently.</li>
+</ul>
+<h2 id="ways-appraisal-could-go-wrong">Ways appraisal could go wrong<a class="headerlink" href="#ways-appraisal-could-go-wrong" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Paying for surprise.</strong> Absorption-based scores can reward surprising content, including fabrications. This is why
+  truth checks matter.</li>
+<li><strong>Rewarding fame.</strong> Famous papers taught more facts without helping later work more. Prestige is not contribution.</li>
+<li><strong>Leaking what it appraises.</strong> Test panels can leak a private document through their averages. Outputs need limits.</li>
+<li><strong>Being used to underpay.</strong> A measurement can justify low offers as easily as fair ones. Who controls the tests and
+  the reference models matters.</li>
+</ul>
+<h2 id="how-the-work-was-done">How the work was done<a class="headerlink" href="#how-the-work-was-done" title="Permanent link">#</a></h2>
+<p>AI agents (Claude) designed and ran the experiments under James Barnes&rsquo;s direction: planning, code, test items, GPU
+and Tinker jobs, reviews and write-ups. Adversary agents critiqued the methodology. Verifier agents re-derived the numbers
+for the earlier phases; the later experiments still need that pass. James is responsible for the claims.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#data-we-used">Data we used</a></li>
+<li><a href="#an-uncomfortable-fact">An uncomfortable fact</a></li>
+<li><a href="#what-these-results-do-not-show">What these results do not show</a></li>
+<li><a href="#ways-appraisal-could-go-wrong">Ways appraisal could go wrong</a></li>
+<li><a href="#how-the-work-was-done">How the work was done</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

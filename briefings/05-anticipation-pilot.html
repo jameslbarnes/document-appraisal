@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anticipation pilot · Measuring what a document teaches a model</title>
+<meta name="description" content="One epoch of training on a paper made later papers that cite it slightly more predictable to OLMo-2-13B (p = 9e-5), but the pre-registered three-epoch gate failed and the true paper could not yet be told apart from an altered copy.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a class="active" href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Anticipation pilot</h1>
+      <p class="summary">One epoch of training on a paper made later papers that cite it slightly more predictable to OLMo-2-13B (p = 9e-5), but the pre-registered three-epoch gate failed and the true paper could not yet be told apart from an altered copy.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>Does training a model on paper A make later papers that cite A more predictable, beyond what any paper in the same field does? If so, later work becomes an outside check on what A taught. And does the true A help more than a copy with its claims altered? That would tie the measure to truth, not just to learnable text.</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<p>Terms are defined in the <a href="../glossary.html">glossary</a>.</p>
+<ul>
+<li><strong>Model.</strong> OLMo-2-13B, an open base model whose training data ends before 2025.</li>
+<li><strong>Papers.</strong> 36 papers A in CS/ML and physics, posted 2025-01 to 2026-02, so all are new to the model. Each has one later arXiv paper B (its follow-up) that cites it, 33–399 days later. The items form six blocks of six.</li>
+<li><strong>Arms.</strong> Each run trains a fresh LoRA (rank 16, learning rate 1e-4) on one of:<ul>
+<li>A, scored after epochs 1 and 3;</li>
+<li>an altered copy of A, made by a frozen script that rescales numbers and swaps comparison words such as &ldquo;higher&rdquo; and &ldquo;lower&rdquo; (mean 463 edits). The copies were never committed or published;</li>
+<li>A&rsquo;s abstract ten times, in filler text;</li>
+<li>a positive control: the opening of B itself.</li>
+</ul>
+</li>
+<li><strong>Measure.</strong> Bits per token saved on B&rsquo;s later text. Words copied from any A in the block are masked (14.5% of tokens). Within a block, every other paper acts as a control. The specific gain T* is A&rsquo;s gain on its own B, beyond A&rsquo;s effect on the block&rsquo;s other papers and beyond what other papers do for B.</li>
+<li><strong>Pre-registered gate</strong>, frozen with the analysis code before any GPU output, all at three epochs:<ul>
+<li>E0: the positive control registers learning;</li>
+<li>E1: T* is above zero;</li>
+<li>E2: the true A beats the altered A.</li>
+</ul>
+</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Gate: FAIL.</strong> E0 and E2 pass; E1 fails. Three epochs overfit A. Almost every B became <em>less</em> predictable, and A&rsquo;s own follow-up suffered most (T* −0.0219 bits per token).</li>
+<li><strong>At one epoch, the predicted pattern appears.</strong> This was a pre-specified descriptive result, not the gate. Every item&rsquo;s B became more predictable (36 of 36). A&rsquo;s specific gain was positive: T* +0.0037 bits per token, positive in 28 of 36 items, Wilcoxon p = 9e-5, and stable across seeds. About a third of A&rsquo;s gain on its follow-up is specific to A; the rest is general field adaptation.</li>
+<li><strong>True and altered A could not yet be told apart.</strong> At one epoch they help B equally (difference +0.0006, interval 0.0000 to +0.0014). At three epochs the true A wins in 75% of items, but both versions leave B worse than no training, and about two thirds of the margin is a generic penalty for altered text. That reads &ldquo;altered claims hurt more&rdquo;, not &ldquo;true claims help&rdquo;.</li>
+<li><strong>The panel can see learning.</strong> The positive control helped its own B in 35 of 36 items, and its gain was specific to that B.</li>
+<li><strong>The abstract ×10 arm</strong> gave a weak, non-significant specific gain (T* +0.0010, p = 0.12).</li>
+</ul>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li>&ldquo;A document teaches knowledge that later work uses&rdquo; is measurable at 13B, on this exploratory evidence. The effect is small: about +0.004 bits per token on B&rsquo;s non-copied text.</li>
+<li>Dose decides the sign. One epoch shows the effect; three epochs reverse it. The damage tracked the number of updates, so the report recommends one epoch or less, a fixed step budget per document, or a decaying learning rate.</li>
+<li>Truth anchoring is not shown yet. The report&rsquo;s next steps: score the sentences of B that cite A, add belief probes, and try training on paraphrases.</li>
+<li>The <a href="07-main-experiment.html">main experiment</a> later repeated the one-epoch test on 30 fresh papers in OLMo-2-13B and DeepSeek-V3.1. The specific gain replicated in both (T* +0.0042 and +0.0058). Truth on later papers&rsquo; text was still not established.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<p>Bits per token on B&rsquo;s masked text unless stated. Intervals are 95% cluster bootstrap over the six blocks; p is a one-sided Wilcoxon test over items.</p>
+<table>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Result</th>
+<th>95% interval</th>
+<th>Reading</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0: share of items where the positive control helps B</td>
+<td>0.972 (35/36)</td>
+<td>0.917 to 1.000</td>
+<td>pass (bar 0.90)</td>
+</tr>
+<tr>
+<td>E1: mean T*, three epochs</td>
+<td>−0.0219 (9/36 positive)</td>
+<td>−0.0351 to −0.0096</td>
+<td>fail</td>
+</tr>
+<tr>
+<td>E2: share of items where true A beats altered A, three epochs</td>
+<td>0.750 (27/36)</td>
+<td>0.556 to 0.889</td>
+<td>pass (bar 0.70, lower end 0.55)</td>
+</tr>
+<tr>
+<td>Mean T*, one epoch</td>
+<td>+0.0037 (28/36 positive, p = 9e-5)</td>
+<td>+0.0010 to +0.0065</td>
+<td>descriptive</td>
+</tr>
+<tr>
+<td>A&rsquo;s gain on its own B, one epoch</td>
+<td>+0.0111 (36/36 positive)</td>
+<td>+0.0075 to +0.0148</td>
+<td>descriptive</td>
+</tr>
+<tr>
+<td>True minus altered A on B, one epoch</td>
+<td>+0.0006</td>
+<td>0.0000 to +0.0014</td>
+<td>no separation</td>
+</tr>
+<tr>
+<td>Abstract ×10, T*</td>
+<td>+0.0010 (p = 0.12)</td>
+<td>−0.0001 to +0.0023</td>
+<td>not significant</td>
+</tr>
+<tr>
+<td>Unrelated Wikipedia text, three epochs</td>
+<td>−0.0162</td>
+<td>−0.0215 to −0.0103</td>
+<td>forgetting</td>
+</tr>
+</tbody>
+</table>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li>Exploratory: 36 items, six clusters (so the bootstrap is coarse), one model, one LoRA recipe, one B per item.</li>
+<li>&ldquo;Cites&rdquo; is not &ldquo;builds on&rdquo;. How each B uses A was not judged, and 16 of 36 B share an author surname with their A.</li>
+<li>The script changes only numbers and comparison words, not methods, theorem conditions or qualitative claims. Four items got very few edits.</li>
+<li>The scored text mostly comes after B&rsquo;s introduction, where restatements of A usually sit.</li>
+<li>E2&rsquo;s lower end (0.556) sits at its threshold.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<p>Run on 2026-10-20. RunPod: $2.81 (estimate about $6, cap $10), on four A40 GPUs: 168 LoRA runs plus 8 base scorings, 4.76 pod-hours. No failures, reruns or deviations from the pre-registration.</p>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<ul>
+<li>Pre-registration: <code>planning/ANTICIPATION_PILOT_PREREG.md</code> (committed with the analysis code at <code>0f0abdf</code>). Report: <code>planning/ANTICIPATION_PILOT_REPORT.md</code>. Design: <code>planning/ANTICIPATION_DESIGN.md</code>, summarized in <a href="../designs.html">Design memos</a>.</li>
+<li>Code: <code>src/cpappraise/anticipation/</code> (<code>text</code>, <code>cf</code>, <code>build</code>, <code>run</code>, <code>stats</code>), <code>scripts/anticipation/</code>, <code>tests/test_anticipation.py</code>. Configs: <code>configs/lane_1c_ant_1.json</code> to <code>_3.json</code>, <code>configs/lane_1c_ant_s.json</code>.</li>
+<li>Numbers (no text): <code>runs/phase1c/anticipation/anticipation.json</code>, <code>build.json</code>, <code>posthoc.json</code>, <code>posthoc_after.json</code>, <code>lane_runs.json</code>; items in <code>data/manifests/anticipation_pilot_items.json</code>.</li>
+<li>Not committed: the downloaded pages, the token inputs (including the altered copies) and per-token arrays.</li>
+<li>To rerun, see <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

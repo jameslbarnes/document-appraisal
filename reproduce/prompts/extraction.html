@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extraction prompts · Measuring what a document teaches a model</title>
+<meta name="description" content="How agents turned batches of arXiv abstracts into structured, quote-checked fact records, with the pilot batch and one regular batch.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a class="active" href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Extraction prompts</h1>
+      <p class="summary">How agents turned batches of arXiv abstracts into structured, quote-checked fact records, with the pilot batch and one regular batch.</p>
+<p>Extractors turned batches of 40 arXiv abstracts into structured fact records: one numeric finding per abstract, with
+its context, or a skip with a reason. They were Opus-class Claude Code subagents. Each followed the frozen protocol in
+<code>prompts/extraction.md</code> (on the <a href="protocols.html">protocols page</a>), wrote one JSON file, ran a self-check that prints no
+text, and replied with one status line. The lead never read the records. Code validated each record against a shared
+schema and checked every quote against the abstract. Code then screened the records for absence from OLMo 2&rsquo;s training
+data and for guessability, and the survivors became the facts behind the planted test items.</p>
+<p>In Phase 1, 801 post-cutoff abstracts gave 245 records, and 300 older abstracts gave 46 records for a known-fact
+control (K-spec). In Phase 1b, 459 new abstracts gave 136 records, of which the frozen screens kept 94.</p>
+<p>How the prompts were edited is explained on the <a href="index.html">catalog page</a>.</p>
+<h3 id="19-the-pilot-batch">19 · The pilot batch<a class="headerlink" href="#19-the-pilot-batch" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 03:22 UTC.</em> <strong>What it did.</strong> Ran the protocol on a first batch, to check the instructions and the self-check before the full run. <strong>What it produced.</strong> One output file. The self-check reports only <code>OK</code>, <code>SKIP</code> or failure codes per item, never text.</p>
+<pre><code class="language-text">You are working in the repository &lt;repo&gt; (Windows; use the Read/Write tools; Python is at .venv\Scripts\python.exe if you need to run the provided selfcheck). Your role is defined by the frozen instruction below. Follow it exactly.
+
+[opus-class extractor] Read prompts/extraction.md and follow it exactly. Your batch file is data/interim/authoring/batches/extraction/extraction-novel-pilot-01.json. Write your output to data/interim/authoring/outputs/extraction/extraction-novel-pilot-01.json. Reply with one status line only.
+
+If prompts/extraction.md describes a self-check command, run it before you reply: `.venv\Scripts\python.exe -m cpappraise.authoring selfcheck &lt;your output file&gt;`. It prints no record text. Fix any reported problems in your output, then reply with one status line.
+</code></pre>
+<h3 id="21-a-regular-batch">21 · A regular batch<a class="headerlink" href="#21-a-regular-batch" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 03:44 UTC.</em> <strong>What it did.</strong> One of the 20 novel-fact batches of Phase 1. Eight more batches covered the K-spec pool, and twelve ran in Phase 1b. Later prompts ran several batches in a row in one session, and the Phase 1b form also set the data root for the self-check (<code>CPA_DATA_ROOT=data/phase1b</code>). <strong>What it produced.</strong> One JSON file of records and skips, and one status line.</p>
+<pre><code class="language-text">You are working in the repository &lt;repo&gt; (Windows; use the Read/Write tools; Python is at .venv\Scripts\python.exe). Your role is defined by the frozen instruction below. Follow it exactly.
+
+[opus-class extractor] Read prompts/extraction.md and follow it exactly. Your batch file is data/interim/authoring/batches/extraction/extraction-novel-01.json. Write your output to data/interim/authoring/outputs/extraction/extraction-novel-01.json. Reply with one status line only.
+
+Before replying, run `.venv\Scripts\python.exe -m cpappraise.authoring selfcheck data/interim/authoring/outputs/extraction/extraction-novel-01.json` (it prints no record text) and fix any reported problems.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#19-the-pilot-batch">19 · The pilot batch</a></li>
+<li><a href="#21-a-regular-batch">21 · A regular batch</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

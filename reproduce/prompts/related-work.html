@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Related-work prompt · Measuring what a document teaches a model</title>
+<meta name="description" content="The prompt for the literature agent that positioned the study&#x27;s five claims against prior work and listed the papers that overlap them.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a class="active" href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Related-work prompt</h1>
+      <p class="summary">The prompt for the literature agent that positioned the study&#x27;s five claims against prior work and listed the papers that overlap them.</p>
+<p>Before writing up, James asked for a related-work memo: which of the study&rsquo;s claims are new, which are anticipated,
+and which papers overlap them. One agent did the search, with web access but no GPU or paid API. How the prompts were edited is explained on the <a href="index.html">catalog page</a>.</p>
+<h3 id="116-related-work-memo">116 · Related-work memo<a class="headerlink" href="#116-related-work-memo" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-21 00:50 UTC.</em> <strong>What it did.</strong> Searched work from 2019 to 2026 on data valuation and attribution, data selection, knowledge acquisition by fine-tuning, compression progress, contamination detection, time-split evaluation, small-to-large transfer, process data, data markets and confidential computing. It listed only papers it had verified, and graded each of the five claims. <strong>What it produced.</strong> <code>planning/RELATED_WORK.md</code>. Truth-anchored anticipation looked novel, on pilot evidence only. The other four claims were partly anticipated, with the closest prior work named for each. The overlaps it rated most serious were NDAI Agreements (confidential appraisal in an enclave, and Arrow&rsquo;s paradox), Try Before You Buy (measured appraisal in a sandbox), the short-training data valuation that labs already use, Data Appraisal Without Data Sharing, and Sterling. The site&rsquo;s <a href="../../related-work.html">related work</a> page draws on it.</p>
+<pre><code class="language-text">Write a focused related-work memo for James Barnes's planned arXiv paper (his first AI paper). Save it as &lt;repo&gt;/planning/RELATED_WORK.md. Do not commit; edit no other file. No GPU or paid API use; web search allowed (prefer standard search mode; use extended mode only where a standard result is thin).
+
+The paper (working framing): &quot;Measuring what a document uniquely teaches a model.&quot; It argues that a cheap model-internal score of a document's value is not enough, and that direct measurement can make a believable account of a document's unique contribution to a model. Direct measurement means a short fine-tune of a reference model on the document, tested on a panel against matched controls and comparables. The claims to position:
+1. NEGATIVE RESULT (pre-registered, independently verified): a compression-progress score detects planted new findings at OLMo-2-13B (95% vs a same-story control; beats word overlap) but predicts the measured LoRA learning gain on natural documents only weakly (rho 0.28; bar 0.50); a simple in-context-gain baseline did better (0.44); a RHO-style excess-loss score with a larger reference model did not help.
+2. DIRECT MEASUREMENT with controls and comparables as the appraisal method, including an &quot;increment&quot; measure of unique contribution (train on related documents by others alone vs plus the document).
+3. OPEN-TO-FRONTIER TRANSFER of per-document appraisals: on one landmark paper, OLMo-2-13B and DeepSeek-V3.1 (via Tinker) agreed closely at a light dose (rank correlation 0.98 across related documents), diverging at heavy doses (memorization).
+4. TRUTH-ANCHORED ANTICIPATION: training on a paper makes later papers that cite it more predictable (A-specific gain), with counterfactual (altered-claim) controls as a truth test.
+5. PRIVACY: appraisal inside a trusted execution environment with bounded outputs and member-approved test panels; panel-based extraction as a threat.
+
+Cover (2019–2026, with emphasis on 2024–2026): data valuation and attribution for LLMs (influence functions, TracIn, TRAK, LoGra/&quot;what is your data worth to GPT&quot;, Datamodels, Data Shapley and scalable variants, MaxShapley, LESS, DsDm); data selection for pretraining (RHO-LOSS, RHO-1, perplexity-based pruning with small reference models, quality classifiers such as FineWeb-Edu and DCLM, QuRating); knowledge acquisition and injection by fine-tuning (Gekhman et al. 2024 on new knowledge and hallucination, Allen-Zhu &amp; Li &quot;Physics of Language Models&quot;, Ovadia et al. fine-tuning vs retrieval, synthetic continued pretraining/EntiGraph, knowledge editing); curiosity and compression progress (Schmidhuber) and novelty detection in LMs; membership inference and contamination detection (Min-K% and successors); temporal generalization, forecasting and time-split evaluation of LMs; small-to-large transfer of data selection/valuation; process/trajectory data value; data markets, licensing and pricing for AI training data (e.g., Agarwal-Dahleh-Sarkar data marketplaces, recent licensing studies, &quot;Labor as Capital&quot; Cullen-Li-Li 2026); confidential computing for ML training and private data valuation.
+
+Deliverable structure: (1) a 5-line summary: for each of the 5 claims, NOVEL / PARTLY ANTICIPATED / ANTICIPATED, with the closest prior work; (2) the 20–30 closest papers, each with a full citation, link, 1–2 line summary and exactly how it relates or differs; (3) a must-cite list; (4) a short &quot;positioning paragraph&quot; draft for the introduction; (5) red flags: any paper that substantially overlaps a claim. Be precise and conservative: only list papers you verified exist (title, authors, year, link checked); mark anything uncertain. Final message: the 5-line summary and any red flags.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#116-related-work-memo">116 · Related-work memo</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

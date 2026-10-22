@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1b: the gate at 13B and 32B · Measuring what a document teaches a model</title>
+<meta name="description" content="On 60 fresh planted items, OLMo-2-13B passed a stricter planted gate with a clear margin over word overlap and OLMo-2-32B failed; an exploratory diagnosis reads the 13B–32B difference as item-level noise, not an effect of scale.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a class="active" href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Phase 1b: the gate at 13B and 32B</h1>
+      <p class="summary">On 60 fresh planted items, OLMo-2-13B passed a stricter planted gate with a clear margin over word overlap and OLMo-2-32B failed; an exploratory diagnosis reads the 13B–32B difference as item-level noise, not an effect of scale.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>In <a href="01-phase1-cheap-score.html">Phase 1</a>, larger scorers met every gate criterion, but only as diagnostics on items already used. Phase 1b asked, under a new pre-registration: on fresh items, does a 13B or 32B scorer pass a stricter gate that also requires beating word overlap? A pass would license the costly learning test, <a href="03-h1b-cheap-score-vs-learning.html">H1b</a>.</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Models and dose.</strong> OLMo-2-13B and OLMo-2-32B, <a href="../glossary.html">open models</a> named before any new item was scored. Phase 1&rsquo;s frozen score and copy mask; no training. Outputs stayed sealed (hashed, unopened) until both scorers had finished.</li>
+<li><strong>Documents and arms.</strong> 84 new planted findings on Phase 1&rsquo;s 84 public base records. Every fact and text was new, and each fact was screened so that six models could not guess it. Arms as in Phase 1: noise, and a same-story control (the finding swapped for a detail nothing later uses). After pre-registered exclusions, 60 test items in 31 clusters remained.</li>
+<li><strong>Stricter gate (G1b).</strong> As before: T1, finding vs noise, by AUROC (the chance that a random finding outscores a random noise passage); T2, finding vs same-story control, by win rate W (the share of items where the finding outscores its control; ties count half); T3, the copy mask must at least halve false alarms on made-up names. New: <strong>T2w</strong>, the score&rsquo;s W minus word overlap&rsquo;s W on the same pairs must have a lower bound above 0. Two scorers meant two chances to pass, so every interval is a 97.5% <a href="../glossary.html">bootstrap interval</a> instead of 95%.</li>
+<li><strong>Secondary (M1b).</strong> Beat each of the four &ldquo;is later text about the same thing?&rdquo; baselines by at least 0.05.</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Verdict: 13B PASS; 32B FAIL (on T2w and T3).</strong></li>
+<li><strong>13B.</strong> It ranked the finding above its same-story control in 57 of 60 items (W 0.950). Word overlap scored W 0.758 on the same pairs, so the margin was +0.192 (lower bound 0.074). It beat all four relatedness baselines (M1b PASS).</li>
+<li><strong>32B.</strong> It passed T2 exactly at the bar (W 0.850). Its margin over word overlap (+0.092) had a lower bound below zero, and its copy mask left a false-alarm share of 0.315 against a ceiling of 0.278. M1b was inconclusive.</li>
+<li><strong>Replicated.</strong> A clean-checkout re-analysis of the sealed scores with a new seed reproduced every point estimate and verdict (bounds moved by at most 0.0076).</li>
+<li><strong>13B vs 32B (exploratory).</strong> The 13B was right and the 32B wrong on 8 items, and the reverse on 2. The difference in W, +0.10 (95% interval 0.00–0.20; exact McNemar p = 0.11), is not shown to differ from zero.</li>
+<li><strong>Diagnosis (exploratory): best read as item-level noise, not scale.</strong><ul>
+<li>On the inserted text that carries the designed signal, both scorers rank 51 of 60 items correctly.</li>
+<li>The 13B&rsquo;s extra margin comes from the base record&rsquo;s own text, which the plants were not designed to affect.</li>
+<li>Of the 8 items only the 13B got right, 6 are near ties for it (median gap 4.3 <a href="../glossary.html">bits</a>, against 13.0 where both agree).</li>
+<li>Copying plays no part. The 32B&rsquo;s copy-mask miss is a general shift: +3.7 bits of payoff even on a known-content control.</li>
+</ul>
+</li>
+</ul>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li>A 13B open model can detect a planted new finding against a same-story control, by a clear margin over word overlap. The relatedness confound that sank Phase 1 does not fully explain this result.</li>
+<li>Bigger was not better here, and the difference looks like noise. Compare scorers with paired, continuous measures on more items, not a pass/fail win rate on 60.</li>
+<li>The result shows sensitivity to the <em>presence</em> of a finding, not yet to its exact value.</li>
+<li>Passing the gate only earned the real test: does the score predict learning?</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Measure (97.5% interval)</th>
+<th>OLMo-2-13B</th>
+<th>OLMo-2-32B</th>
+<th>Bar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1: finding vs noise, AUROC</td>
+<td>0.989 (0.971–1.000)</td>
+<td>0.986 (0.946–1.000)</td>
+<td>≥ 0.85, lower bound ≥ 0.75</td>
+</tr>
+<tr>
+<td>T2: finding vs same-story control, W</td>
+<td>0.950 (0.883–1.000); 57/60</td>
+<td>0.850 (0.754–0.934)</td>
+<td>≥ 0.85, lower bound ≥ 0.75</td>
+</tr>
+<tr>
+<td>T2w: W minus word overlap&rsquo;s W (0.758)</td>
+<td>+0.192 (0.074–0.317)</td>
+<td>+0.092 (−0.066–0.250)</td>
+<td>lower bound &gt; 0</td>
+</tr>
+<tr>
+<td>T3: made-up-name false alarms, raw → masked</td>
+<td>0.593 → 0.259 (ceiling 0.296)</td>
+<td>0.556 → 0.315 (ceiling 0.278)</td>
+<td>masked ≤ half of raw</td>
+</tr>
+<tr>
+<td><strong>Gate G1b</strong></td>
+<td><strong>PASS</strong></td>
+<td><strong>FAIL</strong> (T2w, T3)</td>
+<td>all four</td>
+</tr>
+<tr>
+<td>M1b: margin over four relatedness baselines</td>
+<td>PASS</td>
+<td>INCONCLUSIVE</td>
+<td>each ≥ 0.05</td>
+</tr>
+</tbody>
+</table>
+<p>AUROC and W run from 0 to 1; 0.5 is chance. False alarms are a share of 54 made-up-name test items.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li>The paired relatedness check (T16p) failed: word overlap favored the finding in most items (W 0.758). A rewrite of the controls was stopped by a safety classifier and not retried (D38), so protection against relatedness rests on T2w and M1b.</li>
+<li>The counterfactual value test was not run (D23), and a judge check that protects value-specificity was omitted (D36).</li>
+<li>The 13B&rsquo;s T3 came from Phase 1&rsquo;s sealed run and was a narrow pass known before the freeze. Both masked intervals contain their ceilings, so T3 does not separate the scorers.</li>
+<li>Base records and layout were reused from Phase 1, where the 13B had already scored these slots. Conclusions are scoped to these 84 bases, with one checkpoint per model size.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<ul>
+<li>2026-10-19: pre-registration frozen at 13:48:48Z (UTC), gate result the same day; Verifier re-analysis 2026-10-19/20.</li>
+<li>The gate stage (six-model fact screening, 13B and 32B scoring) cost $18.22 against an estimate of about $4.45. The 32B lane alone cost $15.95, including about $9.6 of idle GPU time (D42) and a $0.52 duplicate pod (D41).</li>
+<li>Phase 1b as a whole, including H1b, cost $61.64 of an $80 cap; cumulative with Phase 1&rsquo;s $1.93, $63.57.</li>
+</ul>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<p>Paths are relative to the study repository (cp-appraisal).</p>
+<ul>
+<li><strong>Reports:</strong> <code>REPORT_1B.md</code> (§1–§2, §4–§5, §7–§9), <code>SUMMARY_1B.md</code>, <code>PREREG_1B.md</code>, <code>CHECKINS.md</code> (Phase 1b check-ins 1–2), <code>DECISION_LOG.md</code> (D33–D43), <code>planning/critique_methodology_report1b.md</code>, <code>planning/VERIFIER_REPORT_1B.md</code>, <code>planning/VERIFIER_NUMBER_CHECK_1B.md</code>, <code>planning/TRANSFER_DESIGN.md</code> §1 (the 32B diagnosis).</li>
+<li><strong>Results:</strong> <code>runs/phase1b/G1b_13b/g1b.json</code>, <code>runs/phase1b/G1b_32b/g1b.json</code>, <code>runs/Q1_13b/q1.json</code> (the 13B&rsquo;s T3), <code>runs/phase1b/prescore/</code>, <code>runs/phase1b/explore/13v32.json</code>, <code>runs/phase1c/flips_13v32.json</code>, <code>runs/verifier/verifier_g1b.json</code>.</li>
+<li><strong>Code and configs:</strong> <code>scripts/run_g1b.py</code>, <code>scripts/t16p.py</code>, <code>scripts/explore_13v32.py</code>, <code>scripts/flips_13v32.py</code>, <code>scripts/seal.py</code>, <code>configs/lane_p1b_13b.json</code>, <code>configs/lane_p1b_32b.json</code>.</li>
+<li>To rerun, see <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What a report could look like · Measuring what a document teaches a model</title>
+<meta name="description" content="A useful appraisal says in plain words what the model now knows or does, why a buyer would care, and how the document compares with alternatives; here is an illustration for one public paper.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a class="active" href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>What a report could look like</h1>
+      <p class="summary">A useful appraisal says in plain words what the model now knows or does, why a buyer would care, and how the document compares with alternatives; here is an illustration for one public paper.</p>
+<h2 id="what-a-report-needs-to-say">What a report needs to say<a class="headerlink" href="#what-a-report-needs-to-say" title="Permanent link">#</a></h2>
+<p>James Barnes&rsquo;s feedback on draft reports from the <a href="07-main-experiment.html">main experiment</a> was that tables of ranks
+and bits did not help. A rank says a paper came 7th of 30. It does not say what the model learned, or why anyone
+should care. A report a person can use answers three questions in plain words:</p>
+<ol>
+<li><strong>What does the model now know or do</strong> that it did not before? Name the facts, terms and methods.</li>
+<li><strong>Why would a buyer care?</strong> Name the work where the change shows up.</li>
+<li><strong>How does the document compare with alternatives,</strong> such as earlier work on the same topic and other documents?</li>
+</ol>
+<p>Numbers back up the answers; they do not replace them. A report should also say what it cannot tell you.</p>
+<h2 id="an-illustration-one-public-paper">An illustration: one public paper<a class="headerlink" href="#an-illustration-one-public-paper" title="Permanent link">#</a></h2>
+<div class="admonition note">
+<p class="admonition-title">An illustration, not an appraisal</p>
+<p>This example was built from main-experiment data for a public paper. The paper&rsquo;s authors were not involved and
+have not seen it. It shows the format; it is not a verdict on the paper.</p>
+</div>
+<p><strong>The document.</strong> &ldquo;Permissive-Washing in the Open AI Supply Chain: A Large-Scale Audit of License Integrity&rdquo; (arXiv
+2602.08816, February 2026, about 13,600 tokens).</p>
+<p><strong>How it was measured.</strong> OLMo-2-13B (open) and DeepSeek-V3.1 (frontier), neither of which had seen the paper, each
+read it once at a matched light <a href="../glossary.html">dose</a>. Every result compares this with the same model after reading
+an unrelated paper of the same length, averaged over two runs. At this scale, a report like this costs roughly $1
+per document for both models.</p>
+<h3 id="what-the-paper-says">What the paper says<a class="headerlink" href="#what-the-paper-says" title="Permanent link">#</a></h3>
+<ul>
+<li>Permissive licenses such as MIT, Apache-2.0 and BSD-3-Clause dominate open-source AI. They still carry conditions:
+    include the license text, keep the copyright notice, and preserve upstream attribution.</li>
+<li>The authors audit 124,278 dataset → model → application chains on Hugging Face and GitHub. They find that 96.5% of
+    the datasets and 95.8% of the models lack the required license text.</li>
+<li>Attribution is mostly lost downstream. Only 27.59% of models preserve compliant dataset notices, and only 5.75% of
+    applications preserve compliant model notices.</li>
+<li>They call this &ldquo;permissive washing&rdquo;: labeling an artifact free to use while omitting the documents that make the
+    label actionable. Their conclusion is that license files and notices, &ldquo;not metadata, are the source of legal
+    truth.&rdquo;</li>
+</ul>
+<h3 id="what-the-model-now-knows">What the model now knows<a class="headerlink" href="#what-the-model-now-knows" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>The open model learned the paper&rsquo;s specifics.</strong> Eleven of 12 test questions improved. On average it became about
+    twice as likely to give the paper&rsquo;s answers.</li>
+<li><strong>In the open model, concrete names stuck best.</strong> The paper&rsquo;s example of an MIT-labeled dataset without its license text,
+    Anthropic/hh-rlhf, became 54 times more likely as an answer. So did the tools it names (ScanCode Toolkit 2.3 times,
+    GitHub Code Search API 1.9 times) and its coined term &ldquo;compliance payload&rdquo; for license text plus notices (2.1
+    times).</li>
+<li><strong>The frontier model took in much less detail.</strong> Eight of 12 questions improved, and on average its answers became
+    only 1.05 times as likely. What did register was the coined term (1.7 times) and two of the paper&rsquo;s arguments: that
+    attribution is mostly lost at &ldquo;application integration&rdquo; (1.6 times), and that the findings bear on legal &ldquo;risk
+    exposure&rdquo; (1.6 times).</li>
+<li><strong>Broad arguments stuck less than names</strong> in both models. Single questions are noisy, with two runs each; the
+    overall pattern is the reliable part.</li>
+</ul>
+<h3 id="how-it-helps-with-the-work-that-followed">How it helps with the work that followed<a class="headerlink" href="#how-it-helps-with-the-work-that-followed" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>The main follow-up</strong> is &ldquo;Which Models Are Our Models Built On? Auditing Invisible Dependencies in Modern LLMs&rdquo;
+    (June 2026), by different authors. It cites the paper for the finding that license labels act as &ldquo;weak metadata
+    signals when the underlying compliance payload is missing&rdquo;, reusing the paper&rsquo;s own coined term.</li>
+<li><strong>After reading the paper, both models predicted that follow-up better:</strong> by 0.8% (open) and 1.0% (frontier) of its
+    difficulty, net of the control. The average paper in the study gives about 0.4%. This paper ranks 2nd (open) and
+    4th (frontier) of 30.</li>
+<li><strong>The gains sit where the topics meet.</strong> The follow-up&rsquo;s sentences that cite the paper improved most. Elsewhere in
+    the follow-up, the passages that gained most were about tracing model lineage through Hugging Face metadata, and
+    about why evidence of dependencies is scattered.</li>
+<li><strong>Part of the gain belongs to this paper alone,</strong> beyond what the other papers in its batch do for the same
+    follow-up. On that part it ranks 10th (open) and 13th (frontier) of 30.</li>
+<li><strong>It is not shared authorship or copying.</strong> The follow-up shares no authors with the paper. Across the study, the 14
+    follow-ups that do share authors with their paper gained no more on average. Text copied from the paper is masked
+    out of the scores.</li>
+</ul>
+<h3 id="why-a-buyer-might-care">Why a buyer might care<a class="headerlink" href="#why-a-buyer-might-care" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>For a model that will work on AI licensing, provenance or dataset due diligence,</strong> the paper supplies specific,
+    checkable knowledge: which artifacts lack license text, which tools audit it, and where attribution breaks. It also
+    prepares the model for the line of work that followed.</li>
+<li><strong>The effect spreads a little.</strong> The follow-ups of the four other CS/ML papers in its batch, none of which cite it,
+    also became slightly easier to predict. On this the paper ranks 8th of 30 in the open model and 1st in the frontier
+    model.</li>
+<li><strong>No side effects were seen</strong> on unrelated text (Wikipedia).</li>
+<li><strong>What a buyer should not infer:</strong> that the paper&rsquo;s numbers are right, or what it is worth in money.</li>
+</ul>
+<h3 id="how-it-compares">How it compares<a class="headerlink" href="#how-it-compares" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>With its predecessors.</strong> Each model first read three earlier papers on the topic by other authors: &ldquo;The ML Supply
+    Chain in the Era of Software 2.0: Lessons Learned from Hugging Face&rdquo;; Kim et al. (2025), &ldquo;Do Not Trust Licenses You
+    See&rdquo;, which argues that license terms alone cannot settle a dataset&rsquo;s legal risk; and &ldquo;Model Hubs and Beyond:
+    Analyzing Model Popularity, Performance, and Documentation&rdquo;. Then it read this paper, or the control.<ul>
+<li>The paper&rsquo;s specific content is not in those papers. With them already read, it still made its answers 2.3 times
+    (open) and 1.4 times (frontier) more likely, more than it did without them.</li>
+<li>Most of its effect on the follow-up is its own: 61% (open) and 55% (frontier) remained.</li>
+<li>This matters because the follow-up cites this paper and Kim et al. in the same sentence. A buyer who already has
+    Kim et al. still gets most of what this paper adds.</li>
+</ul>
+</li>
+<li><strong>With the other 29 papers.</strong> It is among the strongest for its follow-up (2nd and 4th of 30), and 7th (open) and
+    25th (frontier) for facts absorbed. The two models disagree on how much detail stuck, although across all 30
+    papers their rankings agree well (rank correlation 0.75 for facts, 0.74 for follow-ups). So treat the follow-up
+    result as the dependable one, and the detail result as model-dependent.</li>
+</ul>
+<p><img alt="Scatter plot of the 30 papers in the open model: bits gained per test question against how much easier the follow-up paper became. The Permissive-Washing audit is labeled near the top, slightly right of the average paper." src="../assets/img/absorbed_vs_followup.svg" /></p>
+<p><em>Where the paper sits among the 30 (open model): above average on facts absorbed (7th of 30), and second on help to
+its follow-up.</em></p>
+<h3 id="what-this-report-does-not-tell-you">What this report does not tell you<a class="headerlink" href="#what-this-report-does-not-tell-you" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Whether the claims are true.</strong> In this study, a copy of a paper with its numbers and comparisons altered scores
+    the same as the real one.</li>
+<li><strong>Price or overall worth.</strong> The report measures what models learn, relative to other papers.</li>
+<li><strong>Heavier training.</strong> The models read the paper once. More repetition raises absorption and can change the profile.</li>
+<li><strong>Independent judgment.</strong> An AI wrote the test questions from the paper; a buyer did not.</li>
+</ul>
+<h2 id="all-30-papers-at-a-glance">All 30 papers at a glance<a class="headerlink" href="#all-30-papers-at-a-glance" title="Permanent link">#</a></h2>
+<p>For orientation, not as a league table. &ldquo;Fact learned most&rdquo; is the test question whose answer gained the most,
+averaged over the two models. Ranks are out of 30, where 1 is the largest gain. <em>Absorbed</em> is how much of the paper&rsquo;s
+specific content stuck; <em>follow-up</em> is how much easier the paper&rsquo;s own follow-up became. Each rank cell gives
+open · frontier.</p>
+<table>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Field</th>
+<th>Fact learned most</th>
+<th>Absorbed</th>
+<th>Follow‑up</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agentic AI sustainability assessment</td>
+<td>CS/ML</td>
+<td>a collaboration with &ldquo;Tesisquare&rdquo;</td>
+<td>18 · 11</td>
+<td>20 · 9</td>
+</tr>
+<tr>
+<td>Concept discovery for LLM judges</td>
+<td>CS/ML</td>
+<td>judge prompt from &ldquo;JudgeBench&rdquo;</td>
+<td>26 · 13</td>
+<td>21 · 26</td>
+</tr>
+<tr>
+<td>Does RL incentivize reasoning?</td>
+<td>CS/ML, landmark</td>
+<td>data split from &ldquo;Omni-MATH-Rule&rdquo;</td>
+<td>5 · 8</td>
+<td>7 · 8</td>
+</tr>
+<tr>
+<td>GitSearch</td>
+<td>CS/ML</td>
+<td>introduces the &ldquo;PolBench&rdquo; benchmark</td>
+<td>14 · 12</td>
+<td>4 · 13</td>
+</tr>
+<tr>
+<td>GPT-5 System Card</td>
+<td>CS/ML, landmark</td>
+<td>factuality prompts from &ldquo;LongFact and FActScore&rdquo;</td>
+<td>1 · 6</td>
+<td>8 · 5</td>
+</tr>
+<tr>
+<td>gpt-oss model card</td>
+<td>CS/ML, landmark</td>
+<td>did not reach &ldquo;High capability&rdquo;, even fine-tuned</td>
+<td>16 · 17</td>
+<td>19 · 25</td>
+</tr>
+<tr>
+<td>How Bias Binds</td>
+<td>CS/ML</td>
+<td>a stage called &ldquo;token semantic bias decoupling&rdquo;</td>
+<td>19 · 23</td>
+<td>24 · 18</td>
+</tr>
+<tr>
+<td>Image restoration with flow models</td>
+<td>CS/ML</td>
+<td>&ldquo;PnP-FBS&rdquo; copes better with noise mismatch</td>
+<td>15 · 18</td>
+<td>13 · 11</td>
+</tr>
+<tr>
+<td>InterChart</td>
+<td>CS/ML</td>
+<td>MultiChartQA uses &ldquo;synthetic chart triplets&rdquo;</td>
+<td>13 · 7</td>
+<td>3 · 14</td>
+</tr>
+<tr>
+<td>InternVL3.5</td>
+<td>CS/ML, landmark</td>
+<td>still struggles on &ldquo;HallusionBench&rdquo;</td>
+<td>2 · 2</td>
+<td>15 · 17</td>
+</tr>
+<tr>
+<td>Permissive-Washing</td>
+<td>CS/ML</td>
+<td>&ldquo;Anthropic/hh-rlhf&rdquo; lacks its full license text</td>
+<td>7 · 25</td>
+<td>2 · 4</td>
+</tr>
+<tr>
+<td>Robot and crane collaboration</td>
+<td>CS/ML</td>
+<td>stability checked with the &ldquo;Routh-Hurtwitz stability criterion&rdquo; [sic]</td>
+<td>23 · 29</td>
+<td>27 · 24</td>
+</tr>
+<tr>
+<td>SFT Memorizes, RL Generalizes</td>
+<td>CS/ML, landmark</td>
+<td>navigation tests in &ldquo;V-IRL&rdquo;</td>
+<td>11 · 22</td>
+<td>17 · 15</td>
+</tr>
+<tr>
+<td>StretchTime</td>
+<td>CS/ML</td>
+<td>warps time with an &ldquo;adaptive warp module&rdquo;</td>
+<td>17 · 14</td>
+<td>5 · 10</td>
+</tr>
+<tr>
+<td>WebGPU dispatch overhead</td>
+<td>CS/ML</td>
+<td>generation forces &ldquo;per-token sync&rdquo;</td>
+<td>10 · 15</td>
+<td>1 · 1</td>
+</tr>
+<tr>
+<td>AgentCAT</td>
+<td>Physics</td>
+<td>agents follow plan-then-execute and &ldquo;closed-loop self-correction&rdquo;</td>
+<td>25 · 21</td>
+<td>9 · 20</td>
+</tr>
+<tr>
+<td>DESI Data Release 1</td>
+<td>Physics, landmark</td>
+<td>best redshifts are in the &ldquo;zall-pix-iron.fits file&rdquo;</td>
+<td>3 · 3</td>
+<td>25 · 29</td>
+</tr>
+<tr>
+<td>DESI DR2 Results II</td>
+<td>Physics, landmark</td>
+<td>constraints combined with &ldquo;CombineHarvesterFlow&rdquo;</td>
+<td>8 · 5</td>
+<td>10 · 6</td>
+</tr>
+<tr>
+<td>Heisenberg models on the bcc lattice</td>
+<td>Physics</td>
+<td>symmetries enforced by &ldquo;quantum number projection&rdquo;</td>
+<td>21 · 28</td>
+<td>29 · 27</td>
+</tr>
+<tr>
+<td>Stellar surfaces from astrometric jitter</td>
+<td>Physics</td>
+<td>bounds compared by the &ldquo;trace of the CRB&rdquo;</td>
+<td>28 · 19</td>
+<td>22 · 28</td>
+</tr>
+<tr>
+<td>Explainable protein-function classification</td>
+<td>Q-bio</td>
+<td>uses the &ldquo;Structural Protein Sequences dataset&rdquo;</td>
+<td>27 · 27</td>
+<td>26 · 16</td>
+</tr>
+<tr>
+<td>Gene clusters from RNA-seq</td>
+<td>Q-bio</td>
+<td>&ldquo;CS-CORE&rdquo; controls for sequencing depth</td>
+<td>22 · 26</td>
+<td>23 · 19</td>
+</tr>
+<tr>
+<td>Memory geometry in RNNs</td>
+<td>Q-bio</td>
+<td>attractors made by &ldquo;freeze-in training&rdquo;</td>
+<td>6 · 4</td>
+<td>12 · 2</td>
+</tr>
+<tr>
+<td>Molecular optimization with energy models</td>
+<td>Q-bio</td>
+<td>an energy-based model for &ldquo;implicit chemical property optimization&rdquo;</td>
+<td>30 · 30</td>
+<td>28 · 22</td>
+</tr>
+<tr>
+<td>Protein structure tokenization</td>
+<td>Q-bio</td>
+<td>a transfer variant, &ldquo;GeoBPE-Transfer&rdquo;</td>
+<td>4 · 1</td>
+<td>18 · 7</td>
+</tr>
+<tr>
+<td>Asynchronous momentum algorithm</td>
+<td>Math</td>
+<td>plans rules that &ldquo;change algorithm parameters online&rdquo;</td>
+<td>24 · 16</td>
+<td>30 · 30</td>
+</tr>
+<tr>
+<td>Microchannel heat-sink design</td>
+<td>Math, landmark</td>
+<td>uses the two-phase model of &ldquo;Kalteh et al.&rdquo;</td>
+<td>9 · 10</td>
+<td>11 · 21</td>
+</tr>
+<tr>
+<td>Point Cloud Neural Operator</td>
+<td>Math, landmark</td>
+<td>data generated with &ldquo;AERO-Suite&rdquo;</td>
+<td>12 · 9</td>
+<td>16 · 23</td>
+</tr>
+<tr>
+<td>Ternary Goldbach in residue classes</td>
+<td>Math</td>
+<td>deduced from a &ldquo;local result&rdquo;</td>
+<td>29 · 24</td>
+<td>14 · 12</td>
+</tr>
+<tr>
+<td>Tube integrability</td>
+<td>Math</td>
+<td>periodic solutions ruled out by a &ldquo;second-order resonance mechanism&rdquo;</td>
+<td>20 · 20</td>
+<td>6 · 3</td>
+</tr>
+</tbody>
+</table>
+<p>Most of the top facts are names: of datasets, tools, benchmarks, methods or coined terms. That matches what stuck
+from the Permissive-Washing paper.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>The probes were written by AI, by Claude agents working from the papers</strong> under a frozen protocol, not by buyers
+    or independent experts. A buyer&rsquo;s own questions could rank papers differently.</li>
+<li><strong>&ldquo;Fact learned most&rdquo; is one question&rsquo;s answer,</strong> and single questions are noisy (two runs per model).</li>
+<li><strong>One light dose and two model families.</strong> Ranks also depend on which 30 papers are compared.</li>
+<li><strong>The format is a proposal.</strong> It has not been tested with buyers or authors.</li>
+</ul>
+<h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">#</a></h2>
+<ul>
+<li>Per-paper numbers: <code>data/interim/main_exp/reports/per_paper.json</code> and the internal sample report
+    <code>data/interim/main_exp/reports/SAMPLE_MEMBER_REPORT.md</code>, both local and not committed; also
+    <code>runs/phase1c/main_exp/effects.json</code>.</li>
+<li>Study-wide numbers and method: <code>planning/MAIN_EXPERIMENT_REPORT.md</code> and the
+    <a href="07-main-experiment.html">main experiment briefing</a>.</li>
+<li>Public papers: arXiv 2602.08816 (the paper), 2606.12385 (the follow-up), and 2502.04484, 2503.02784 and 2503.15222
+    (the predecessors).</li>
+<li>To produce a report like this for another document: <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#what-a-report-needs-to-say">What a report needs to say</a></li>
+<li><a href="#an-illustration-one-public-paper">An illustration: one public paper</a><ul>
+<li><a href="#what-the-paper-says">What the paper says</a></li>
+<li><a href="#what-the-model-now-knows">What the model now knows</a></li>
+<li><a href="#how-it-helps-with-the-work-that-followed">How it helps with the work that followed</a></li>
+<li><a href="#why-a-buyer-might-care">Why a buyer might care</a></li>
+<li><a href="#how-it-compares">How it compares</a></li>
+<li><a href="#what-this-report-does-not-tell-you">What this report does not tell you</a></li>
+</ul>
+</li>
+<li><a href="#all-30-papers-at-a-glance">All 30 papers at a glance</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#sources">Sources</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

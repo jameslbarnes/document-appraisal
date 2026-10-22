@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The method · Measuring what a document teaches a model</title>
+<meta name="description" content="Train two copies of the same model, one with the document and one without, under identical conditions, and test both the same way. Whatever differs is what the document contributed.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a class="active" href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>The method</h1>
+      <p class="summary">Train two copies of the same model, one with the document and one without, under identical conditions, and test both the same way. Whatever differs is what the document contributed.</p>
+<h2 id="the-idea-in-one-paragraph">The idea in one paragraph<a class="headerlink" href="#the-idea-in-one-paragraph" title="Permanent link">#</a></h2>
+<p>To find out what a document adds to a model, give it to one copy of the model and give a different document of the
+same length to another copy. Train both identically: same steps, same number of tokens, same random seeds. Then test
+both copies on the same questions and texts. The <em>control</em> copy shows what any training does. The difference between
+the two copies is what this document taught. A drug trial works the same way, with the document as the treatment and
+the control as the placebo.</p>
+<p>The training is light. It uses LoRA, a small add-on to the model&rsquo;s weights, and one pass over the document. That
+roughly matches how a document would register as one item among many in a training run. The study used OLMo-2-13B,
+an open model trained on rented GPUs. It also used DeepSeek-V3.1, a frontier-scale open-weights model trained
+through Thinking Machines&rsquo; Tinker service.</p>
+<h2 id="the-arms">The arms<a class="headerlink" href="#the-arms" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th>What the model reads</th>
+<th>What it tells you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document</td>
+<td>the document</td>
+<td>everything the document changes, plus generic training effects</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>an unrelated document, packed to the same length and sequence profile</td>
+<td>generic training effects alone</td>
+</tr>
+<tr>
+<td>Background + document</td>
+<td>three earlier related papers by other authors, then the document</td>
+<td>the document&rsquo;s effect when related work is already known</td>
+</tr>
+<tr>
+<td>Background + control</td>
+<td>the same three papers, then the control</td>
+<td>the baseline for the increment</td>
+</tr>
+<tr>
+<td>Altered copy</td>
+<td>the document with its 5–20 key numbers and comparison words changed by script</td>
+<td>whether truth matters</td>
+</tr>
+<tr>
+<td>Random-edit copy</td>
+<td>the document with the same number of edits made elsewhere</td>
+<td>a control for &ldquo;edited text&rdquo; in general</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>unique contribution</strong> is the increment: (background + document) minus (background + control). It answers &ldquo;what
+does this add beyond related work by others?&rdquo;</p>
+<h2 id="matching-the-training-amount-dose">Matching the training amount (dose)<a class="headerlink" href="#matching-the-training-amount-dose" title="Permanent link">#</a></h2>
+<p>The same settings do not give the same dose. At the same learning rate, DeepSeek-V3.1 fit a paper about 2.6 times
+harder than OLMo. Without correction it nearly memorized a 166-page paper, and its gains on related work turned into
+losses (<a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a>). So the study calibrates each model&rsquo;s learning rate to a
+target <strong>dose</strong>: the fraction by which the model&rsquo;s loss on the document itself falls after training. It was about 6%
+for typical papers and about 15% for the long Navier–Stokes paper. Comparisons between models are only meaningful at
+matched doses.</p>
+<h2 id="what-is-tested">What is tested<a class="headerlink" href="#what-is-tested" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>What it is</th>
+<th>What it captures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recall</td>
+<td>fill-in-the-blank questions written from the document; some use its wording, some are rephrased</td>
+<td>whether the specific content stuck</td>
+</tr>
+<tr>
+<td>Follow-up (anticipation)</td>
+<td>how predictable a later paper that cites the document becomes. Shared phrases are masked out, and a specificity statistic removes generic effects</td>
+<td>whether the document taught what the field went on to use</td>
+</tr>
+<tr>
+<td>Field transfer</td>
+<td>how predictable other recent papers in the same batch become</td>
+<td>spillover to the wider field</td>
+</tr>
+<tr>
+<td>Side effects</td>
+<td>unrelated text (Wikipedia) and general math (GSM8K)</td>
+<td>whether anything else got worse</td>
+</tr>
+<tr>
+<td>Behavior</td>
+<td>decision points in later proofs (multiple choice, scored by probability, no judge), and open strategy answers graded blind</td>
+<td>whether the model <em>does</em> anything differently</td>
+</tr>
+<tr>
+<td>Truth checks</td>
+<td>altered copies and belief probes</td>
+<td>whether the measurement rewards true claims over false ones</td>
+</tr>
+</tbody>
+</table>
+<p>Text tiers are scored in <strong>bits</strong>, a measure of how surprised the model is by each token. A gain of 1 bit on an
+answer means the model became twice as likely to produce it.</p>
+<h2 id="statistics-and-safeguards">Statistics and safeguards<a class="headerlink" href="#statistics-and-safeguards" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Seeds.</strong> Two seeds per arm, with effects paired by seed. Intervals are 95% cluster bootstrap with B = 10,000.</li>
+<li><strong>Frozen plans.</strong> Each experiment froze its items, scoring rule and decision rules in a short note before any
+  trained model was scored. This was kept deliberately light, without ceremony.</li>
+<li><strong>Copy mask.</strong> Text shared verbatim with the training document earns nothing in transfer and follow-up tiers.</li>
+<li><strong>Adversaries and verifiers.</strong> Adversary agents attacked the methodology. Verifier agents re-derived reported
+  numbers from raw outputs for Phases 1 and 1b. The Phase 1c experiments, including the main experiment, have not had
+  a verifier pass yet.</li>
+<li><strong>Numbers-only outputs.</strong> Only numbers are committed to the repository. Paper texts, test items and model answers
+  stay local.</li>
+</ul>
+<h2 id="what-it-costs">What it costs<a class="headerlink" href="#what-it-costs" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>About $1 per document</strong> for both models in the main-experiment setup, covering the document, control and
+  background arms with two seeds each. The open model alone costs about $0.10.</li>
+<li><strong>About $10</strong> for the Navier–Stokes behavior test on a 166-page paper, both models.</li>
+<li><strong>About $140</strong> for the whole study, including dead ends.</li>
+</ul>
+<h2 id="what-a-report-should-say">What a report should say<a class="headerlink" href="#what-a-report-should-say" title="Permanent link">#</a></h2>
+<p>Rank tables and bits are not an appraisal. A report someone can use answers four questions in plain words, with the
+numbers as backing:</p>
+<ol>
+<li><strong>What does the model now know or do that it did not before?</strong> Name the facts, concepts and methods.</li>
+<li><strong>Why would a buyer or user care?</strong> Name the tasks and questions where the change shows up.</li>
+<li><strong>How does it compare with alternatives,</strong> such as related work and other documents on the same topic?</li>
+<li><strong>What does the report not tell you?</strong> Truth, absolute value, and effects at heavier training.</li>
+</ol>
+<p>See <a href="briefings/09-sample-report.html">what a report could look like</a> for an illustration built from the main
+experiment.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-idea-in-one-paragraph">The idea in one paragraph</a></li>
+<li><a href="#the-arms">The arms</a></li>
+<li><a href="#matching-the-training-amount-dose">Matching the training amount (dose)</a></li>
+<li><a href="#what-is-tested">What is tested</a></li>
+<li><a href="#statistics-and-safeguards">Statistics and safeguards</a></li>
+<li><a href="#what-it-costs">What it costs</a></li>
+<li><a href="#what-a-report-should-say">What a report should say</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

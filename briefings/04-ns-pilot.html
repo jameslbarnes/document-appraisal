@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navier–Stokes pilot · Measuring what a document teaches a model</title>
+<meta name="description" content="After one pass over OpenAI&#x27;s Navier–Stokes paper, an open 13B model and a frontier model learned the same things and carried them to the same related papers, but after four passes the frontier model nearly memorized the paper and its transfer turned negative.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a class="active" href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Navier–Stokes pilot</h1>
+      <p class="summary">After one pass over OpenAI&#x27;s Navier–Stokes paper, an open 13B model and a frontier model learned the same things and carried them to the same related papers, but after four passes the frontier model nearly memorized the paper and its transfer turned negative.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>What does a model learn from one landmark document? Do an open model we control and a frontier-scale model give the same answer, measured the same way?</p>
+<p>The document was OpenAI&rsquo;s &ldquo;Finite Time Blowup for Navier–Stokes&rdquo; (166 pages, September 2026). It claims a smooth force that makes a fluid flow, starting from rest, blow up in finite time. The claim is contested. There are critiques, including one by Constantin, Ignatova and Vicol (arXiv 2609.20803), and another arguing that the Lean formalization does not match the paper&rsquo;s proof (arXiv 2610.08144). The pilot does not judge the proof. It measures what a model learns from the text.</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<p>Terms are defined in the <a href="../glossary.html">glossary</a>.</p>
+<ul>
+<li><strong>Models.</strong> OLMo-2-13B, an open base model. DeepSeek-V3.1, a frontier-scale model (671B-parameter mixture of experts, post-trained), trained through Thinking Machines&rsquo; Tinker API.</li>
+<li><strong>Dose.</strong> LoRA (a light fine-tune of a small add-on to the weights), rank 16, learning rate 1e-4, same 42 text sequences in both models. Four epochs (passes), scored after epochs 1 and 4. Two seeds.</li>
+<li><strong>Control.</strong> The same training on an unrelated 162-page algebraic-geometry paper. Every effect is &ldquo;trained on the paper&rdquo; minus &ldquo;trained on the control&rdquo;, paired by seed.</li>
+<li><strong>Panel</strong>, five tiers: 46 recall probes written from the paper; 13 held-out related documents (follow-ups, critiques, precursors, a Wikipedia page); 4 older blow-up texts (2014–2022 and the Clay problem statement); unrelated Wikipedia text; and Lean code from two formalizations.</li>
+<li><strong>Measure.</strong> Bits saved: how much more predictable the text became. Text tiers use millibits per byte (mbit/B), which compares across tokenizers. A copy mask gives no credit for words copied from the paper.</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>One pass: the profiles match.</strong> Both models get the same status (gain, loss or inconclusive) in all five tiers. The same items move: ρ = 0.95 over related-work windows and 0.98 across the 13 documents.</li>
+<li><strong>Transfer follows the mathematics, not the topic.</strong> The largest gains (mbit/B, OLMo / DeepSeek) are on work using the same forced blow-up method: Alpöge–Buckmaster on Euler (+78 / +87) and Boussinesq (+74 / +68), and two IPM papers (+78 / +78, +63 / +58). The same topic with a different method gains little or loses: the 2025 neural-network precursors (−3 to −21), the Lean critique (+6 / +3), the Wikipedia priority page (+1 / −3).</li>
+<li><strong>Four passes: the profiles diverge.</strong> At the same nominal recipe, DeepSeek&rsquo;s training loss on the paper fell from 2.70 to 0.18 bits per token, close to verbatim memorization; OLMo&rsquo;s fell from 3.23 to 1.81. DeepSeek&rsquo;s related-work gain became a loss; OLMo kept its gain.</li>
+<li><strong>The older literature got worse in both models.</strong> We did not expect this. The loss grew with exposure (OLMo −9 → −49 mbit/B, DeepSeek −28 → −76). A later <a href="08-ns-behavior.html">matched-dose test</a> traced DeepSeek&rsquo;s large loss to the heavier dose: it was gone at a matched dose (−0.4). OLMo&rsquo;s smaller loss remained (−8.8).</li>
+<li><strong>Recall is knowledge, not only verbatim memory.</strong> At epoch 4, reworded probes gained nearly as much as verbatim ones (OLMo +3.38 vs +3.56 bits per probe; DeepSeek +2.58 vs +2.82).</li>
+</ul>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li>At a light dose, an open 13B model is a usable stand-in for <em>where</em> a document contributes to a frontier model.</li>
+<li>The same learning rate is not the same dose on two models. Calibrate per model, for example to a target drop in the document&rsquo;s own training loss. The follow-up found that even epoch 1 gave DeepSeek more than twice OLMo&rsquo;s dose; at a matched dose the same passages still benefit (ρ 0.94), but DeepSeek gains about half as much on related work.</li>
+<li>Heavy doses memorize and can flip transfer from gain to loss.</li>
+<li>Controls matter: at epoch 4, training on <em>either</em> paper cost OLMo 68–194 mbit/B and DeepSeek 16–135 mbit/B on related, background and Lean text, so raw gains would read as large harm.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<p>Net of control, paired by seed. Protocol interval (±2 standard errors over items and seeds) and status. Recall in bits per probe; text tiers in mbit/B, copy-masked.</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>OLMo-2-13B, epoch 1</th>
+<th>DeepSeek-V3.1, epoch 1</th>
+<th>OLMo-2-13B, epoch 4</th>
+<th>DeepSeek-V3.1, epoch 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recall</td>
+<td>+1.16 [+0.52, +1.80] gain</td>
+<td>+1.67 [+0.88, +2.45] gain</td>
+<td>+2.73 [+1.62, +3.84] gain</td>
+<td>+2.13 [+1.00, +3.27] gain</td>
+</tr>
+<tr>
+<td>Related work</td>
+<td>+31.5 [+25.7, +37.3] gain</td>
+<td>+26.9 [+19.0, +34.8] gain</td>
+<td>+28.2 [+18.0, +38.5] gain</td>
+<td>−34.3 [−65.2, −3.3] loss</td>
+</tr>
+<tr>
+<td>Background</td>
+<td>−9.1 [−14.5, −3.8] loss</td>
+<td>−27.5 [−34.1, −21.0] loss</td>
+<td>−49.5 [−60.9, −38.1] loss</td>
+<td>−76.3 [−102.0, −50.5] loss</td>
+</tr>
+<tr>
+<td>Side</td>
+<td>−0.3 [−1.4, +0.9] inconclusive</td>
+<td>−4.1 [−10.4, +2.2] inconclusive</td>
+<td>−5.9 [−9.7, −2.2] loss</td>
+<td>−3.5 [−8.5, +1.5] inconclusive</td>
+</tr>
+<tr>
+<td>Lean</td>
+<td>+25.4 [+17.0, +33.8] gain</td>
+<td>+13.8 [+9.4, +18.3] gain</td>
+<td>+5.6 [−14.1, +25.4] inconclusive</td>
+<td>−10.5 [−19.0, −2.0] loss</td>
+</tr>
+<tr>
+<td>Training loss on the paper, bits per token (seeds 11 / 22)</td>
+<td>3.23 / 3.22</td>
+<td>2.71 / 2.70</td>
+<td>1.81 / 1.82</td>
+<td>0.18 / 0.18</td>
+</tr>
+</tbody>
+</table>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li>One document, one control, two seeds. An algebra control removes &ldquo;any training on 160 pages of 2026 mathematics&rdquo;, not &ldquo;any training on fluid dynamics&rdquo;.</li>
+<li>Epoch-4 results describe this recipe, not the models: Tinker&rsquo;s LoRA is set up differently, and no calibrated learning rate existed for DeepSeek.</li>
+<li>DeepSeek-V3.1 is post-trained, not a base model, so only within-model differences are compared. It has probably seen the older background papers.</li>
+<li>LoRA is probably a floor. One AI agent wrote the probes, with no frozen protocol.</li>
+<li>PDF extraction flattened the equations, understating formula-heavy text in both models.</li>
+<li>Why the background gets worse is untested; the report suspects notation interference.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<p>Run on 2026-10-20. Tinker: $13.97, estimated from token counts (cap $25), including a first run that crashed during evaluation. RunPod: $0.82 (cap $5). All Tinker checkpoints were deleted. Not run: an optional arm on OpenAI&rsquo;s Euler companion paper.</p>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<ul>
+<li>Report: <code>planning/NS_PILOT_REPORT.md</code>. Numbers: <code>runs/phase1c/ns_pilot/results.json</code>, <code>effects.json</code>, <code>tables.md</code>.</li>
+<li>Code: <code>src/cpappraise/ns_pilot.py</code>, <code>scripts/ns_pilot.py</code>, <code>tests/test_ns_pilot.py</code>. Config: <code>configs/lane_1c_ns_olmo13.json</code>. Sources (no text): <code>data/manifests/ns_pilot_sources.json</code>.</li>
+<li>Matched-dose follow-up: <code>planning/NS_BEHAVIOR_REPORT.md</code> and the <a href="08-ns-behavior.html">NS behavior briefing</a>.</li>
+<li>To rerun, see <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

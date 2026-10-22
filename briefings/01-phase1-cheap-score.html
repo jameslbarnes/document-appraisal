@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1: the cheap score at 1B · Measuring what a document teaches a model</title>
+<meta name="description" content="At OLMo-2-1B, the training-free compression-progress score failed its pre-registered planted-finding gate (NO-GO) and a simple word-overlap count matched it; larger scorers did better on the same items, which motivated Phase 1b.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a class="active" href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Phase 1: the cheap score at 1B</h1>
+      <p class="summary">At OLMo-2-1B, the training-free compression-progress score failed its pre-registered planted-finding gate (NO-GO) and a simple word-overlap count matched it; larger scorers did better on the same items, which motivated Phase 1b.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>Can a cheap score, computed without training, tell which passages in a document carry new, learnable information? Phase 1 first asked this where the answer is known: real research records with short new findings planted in them. If the score failed, the costly training-based test would not run.</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>The score.</strong> For each passage of a record, we delete it and measure how much harder the model finds the next 768 tokens. That extra surprise, in <a href="../glossary.html">bits</a> (one bit is a halving of the probability the model gave the text), is the passage&rsquo;s <em>compression progress</em>: how much more predictable it makes the text that follows. A <em>copy mask</em> ignores savings on words simply copied from the passage, such as a rare name repeated later, so copying earns nothing.</li>
+<li><strong>Model and dose.</strong> OLMo-2-1B, an open model: its weights and training data are public. No training: the score uses only the model&rsquo;s predictions.</li>
+<li><strong>Documents and arms.</strong> 64 test items, each a segment of a real public research record. Into each we inserted one short synthetic passage stating a finding the model could not know, plus later passages that rely on it. Each finding was compared with noise (random strings, shuffled tokens, number tables) and with a <em>same-story control</em>: the same passage with the finding swapped for a detail that nothing later uses.</li>
+<li><strong>Tests (pre-registered, all required).</strong> T1: finding vs noise, by AUROC (the chance that a random finding outscores a random noise passage; 0.5 is chance). T2: finding vs same-story control, by win rate W (the share of items where the finding outscores its own control; ties count half). T3: the copy mask must at least halve false alarms (made-up names that recur later but get scored as high-payoff).</li>
+<li><strong>Baselines and statistics.</strong> 14 cheap alternatives, including word overlap between the planted passage and later text. A baseline &ldquo;matches&rdquo; if the score leads it by less than 0.05 or the interval of the difference includes 0. Intervals are 95% <a href="../glossary.html">bootstrap intervals</a> over 36 clusters of related items.</li>
+<li><strong>Sealed diagnostics.</strong> OLMo-2-7B and 13B scored the same items; their outputs stayed hashed and unopened until the 1B verdict.</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Verdict: NO-GO, &ldquo;planted gate failed (T2).&rdquo;</strong></li>
+<li><strong>T2 failed.</strong> The finding beat its same-story control in 52 of 64 items (W 0.81; the bar was 0.85).</li>
+<li><strong>T1 passed.</strong> Findings beat noise almost perfectly (AUROC 0.994). Raw surprise fails here (0.33): noise is surprising but not learnable.</li>
+<li><strong>T3 passed.</strong> False alarms on made-up names fell from 0.46 to 0.15. The whole drop was on pseudo-word names; Title-Case names stayed at 0.15.</li>
+<li><strong>Word overlap matched the score</strong> on T2&rsquo;s contrast (W 0.83 against 0.81), and so did embedding similarity (0.75).</li>
+<li><strong>Larger scorers did better.</strong> On the same items, 7B and 13B met every gate criterion (W 0.875 and 0.906). Word overlap still matched the score at every size.</li>
+<li><strong>Replicated.</strong> An independent Verifier&rsquo;s clean-checkout rerun on a fresh GPU reproduced all 573 score rows exactly.</li>
+<li><strong>Not run:</strong> the training-based gold standard and all later tests, as the stopping rule required.</li>
+</ul>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li>At 1B, the score acts more like a detector of topical relatedness (&ldquo;does later text talk about the same thing?&rdquo;) than a measure of specific new content. It is not purely lexical: with word echoes removed, it still preferred the finding in 75% of items. (Interpretation.)</li>
+<li>A score that a word count can match should not yet be used to price records.</li>
+<li>Scale was the best lead. It led to <a href="02-phase1b-gate-13b-32b.html">Phase 1b</a>: fresh items, a larger scorer named in advance, and a required margin over word overlap.</li>
+<li>The cheap gate did its job: it stopped the study before any training spend.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value (95% interval)</th>
+<th>Bar</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1: finding vs noise, AUROC</td>
+<td>0.994 (0.984–1.000)</td>
+<td>≥ 0.85, lower bound ≥ 0.75</td>
+<td>PASS</td>
+</tr>
+<tr>
+<td>T2: finding vs same-story control, W</td>
+<td>0.8125 (0.703–0.908); 52/64</td>
+<td>≥ 0.85, lower bound ≥ 0.75</td>
+<td><strong>FAIL</strong></td>
+</tr>
+<tr>
+<td>T3: made-up-name false alarms, raw → masked</td>
+<td>0.463 → 0.148</td>
+<td>raw ≥ 0.30; masked ≤ half of raw</td>
+<td>PASS</td>
+</tr>
+<tr>
+<td>Word overlap (B9-lex) on T2&rsquo;s contrast, W</td>
+<td>0.828</td>
+<td>—</td>
+<td>matches</td>
+</tr>
+<tr>
+<td>Sealed 7B / 13B, T2 W</td>
+<td>0.875 (0.797–0.944) / 0.906 (0.833–0.969)</td>
+<td>diagnostic only</td>
+<td>criteria met</td>
+</tr>
+</tbody>
+</table>
+<p>AUROC and W run from 0 to 1; 0.5 is chance and 1 is perfect. False alarms are a share of the 54 made-up-name test items.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li>Only the 1B decided. The 7B and 13B reused the same items, so they could recommend a new test but not confirm one.</li>
+<li>Relatedness was balanced only on average. Within an item, the finding usually overlapped more with later text (word-overlap W 0.83).</li>
+<li>Sensitivity to the finding&rsquo;s exact value was not tested. The counterfactual control (the same passage with a false value) would place false claims inside copies of real authors&rsquo; records, so it was paused (D23, D28).</li>
+<li>Fabrication was not tested. By design, the score measures learnable new content, not truth.</li>
+<li>Cold surprise, the planned new-vs-familiar measure, did not separate post-cutoff findings from once-published ones (AUROC 0.67; needed 0.75).</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<ul>
+<li>Run 2026-10-18 to 2026-10-19. The pre-registration was frozen at 2026-10-19T00:04:22Z (UTC), before any data were scored.</li>
+<li>$1.93 of rented cloud GPU time (2.36 pod-hours) against a $150 cap. This includes the sealed 13B ($0.39) and 7B ($0.32) runs and the Verifier&rsquo;s rerun ($0.09).</li>
+<li>Measured scoring cost, GPU time only: $0.0014 per 10,000 tokens at 1B with every passage scored; $0.0047 at 13B under a sampling policy whose fidelity was not tested.</li>
+</ul>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<p>Paths are relative to the study repository (cp-appraisal).</p>
+<ul>
+<li><strong>Reports:</strong> <code>REPORT.md</code>, <code>SUMMARY.md</code>, <code>CHECKINS.md</code> (check-ins 1–3), <code>PREREGISTRATION.md</code>, <code>DECISION_LOG.md</code> (D1–D32), <code>planning/PLAN.md</code>, <code>planning/VERIFIER_REPORT.md</code>, <code>planning/VERIFIER_NUMBER_CHECK.md</code>.</li>
+<li><strong>Results:</strong> <code>runs/Q1/q1.json</code> (1B gate), <code>runs/Q1_7b/</code> and <code>runs/Q1_13b/</code> (sealed diagnostics), <code>runs/verifier/verifier_q1.json</code>, <code>runs/sealed_hashes.jsonl</code>, <code>runs/runpod_ledger.jsonl</code>.</li>
+<li><strong>Code and configs:</strong> <code>src/cpappraise/payoff.py</code> (deletion payoff with the copy mask), <code>src/cpappraise/copyrule.py</code>, <code>src/cpappraise/baselines.py</code>, <code>src/cpappraise/analysis/q1.py</code>, <code>src/cpappraise/plant/</code>, <code>scripts/run_q1.py</code>, <code>scripts/lane.py</code>, <code>configs/lane_p1b_planted.json</code>, <code>configs/lane_p2_13b_sealed.json</code>, <code>configs/lane_p3_7b_sealed.json</code>.</li>
+<li>To rerun, see <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a></li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

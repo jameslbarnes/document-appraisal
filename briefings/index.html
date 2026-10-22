@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Briefings · Measuring what a document teaches a model</title>
+<meta name="description" content="One page per experiment, in the order they ran. Each covers the question, what we did, what happened, what it means for appraisal, the key numbers, caveats, cost and sources.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a class="active" href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Briefings</h1>
+      <p class="summary">One page per experiment, in the order they ran. Each covers the question, what we did, what happened, what it means for appraisal, the key numbers, caveats, cost and sources.</p>
+<h2 id="the-experiments">The experiments<a class="headerlink" href="#the-experiments" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Briefing</th>
+<th>Question</th>
+<th>Answer</th>
+<th>Compute</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></td>
+<td>Can a training-free score spot planted new findings?</td>
+<td>No at 1B (NO-GO). Larger models looked promising</td>
+<td>$1.93</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="02-phase1b-gate-13b-32b.html">Phase 1b: 13B and 32B</a></td>
+<td>Does it work at larger scale, on fresh items?</td>
+<td>Yes at 13B; no at 32B, a gap within noise</td>
+<td>in $61.64</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="03-h1b-cheap-score-vs-learning.html">H1b: score vs learning</a></td>
+<td>Does the score predict what a model learns?</td>
+<td>No. Correlation 0.28 against a 0.50 bar; a simple baseline beat it</td>
+<td>in $61.64</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="04-ns-pilot.html">Navier–Stokes pilot</a></td>
+<td>Do an open and a frontier model learn the same things from one landmark paper?</td>
+<td>Yes after one pass. Not with the same settings at four passes, where the frontier model overfit</td>
+<td>$14.79</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="05-anticipation-pilot.html">Anticipation pilot</a></td>
+<td>Does reading paper A help predict the later papers that cite it?</td>
+<td>Yes. True and falsified versions are not yet separable</td>
+<td>$2.81</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="06-highlighter.html">Highlighter</a></td>
+<td>Can we map which passages are new to a model?</td>
+<td>Not as built</td>
+<td>$0.52</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="07-main-experiment.html">Main experiment: 30 papers</a></td>
+<td>Do these hold across 30 papers and two model families?</td>
+<td>Open matches frontier and anticipation holds. Truth is not established; there is a unique increment</td>
+<td>$43.03</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="08-ns-behavior.html">Navier–Stokes behavior</a></td>
+<td>Does one reading change how a model attacks problems?</td>
+<td>Barely. Knowledge, not method</td>
+<td>$10.64</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="09-sample-report.html">What a report could look like</a></td>
+<td>How should results be presented to a person?</td>
+<td>Plain words first: what changed, why it matters, how it compares</td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-to-read-a-briefing">How to read a briefing<a class="headerlink" href="#how-to-read-a-briefing" title="Permanent link">#</a></h2>
+<p>Each briefing puts the plain-language finding first and the numbers after it. Intervals are 95% bootstrap ranges.
+&ldquo;Pre-registered&rdquo; means the rule was frozen before scoring; &ldquo;descriptive&rdquo; means it was looked at afterwards. Terms are
+defined in the <a href="../glossary.html">glossary</a>.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-experiments">The experiments</a></li>
+<li><a href="#how-to-read-a-briefing">How to read a briefing</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

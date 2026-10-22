@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1 builder prompts · Measuring what a document teaches a model</title>
+<meta name="description" content="The prompts for the agents that fetched data and built the Phase 1 code in parallel, one owner per module, with three shown in full.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a class="active" href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Phase 1 builder prompts</h1>
+      <p class="summary">The prompts for the agents that fetched data and built the Phase 1 code in parallel, one owner per module, with three shown in full.</p>
+<p>Once the pre-registration was frozen, eight builder agents, A to H, wrote the Phase 1 code in parallel in one
+working tree. <code>BUILD.md</code> set the rules, fixed the interfaces between modules and gave each module one owner, so
+builders could work at the same time without editing each other&rsquo;s files. Each prompt names the frozen sections to
+implement, the files the builder owns, its deliverables, and what to do when the pre-registration is ambiguous: write
+the question to <code>planning/BUILD_QUESTIONS.md</code>, pick nothing, and continue. Two data builders (07 and 08) ran earlier,
+during planning. They only collected raw material, because the selection rules were not yet frozen.</p>
+<p>How the prompts were edited is explained on the <a href="index.html">catalog page</a>.</p>
+<h2 id="all-builders-in-one-line-each">All builders, in one line each<a class="headerlink" href="#all-builders-in-one-line-each" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>07 · Data builder: raw corpora.</strong> Fetched raw public records from three sources (OpenWetWare lab notebooks, EA
+  Forum posts with comments, the UsefulChem blog) and seven arXiv papers by Carl Boettiger, with a manifest for each
+  that quotes the source&rsquo;s license. It did no selection or cleaning, because those rules were being frozen.</li>
+<li><strong>08 · Data builder: novel-fact candidates.</strong> Collected a raw pool of at least 500 candidate facts dated after the
+  models&rsquo; training cutoffs, from pinned Wikipedia &ldquo;2026&rdquo; pages and from arXiv abstracts first posted between April and
+  mid-October 2026. Collection only: no screening.</li>
+<li><strong>10 · Builder A: data, streams and units.</strong> Wrote a parser and cleaning for each source (markup stripped, author
+  handles replaced by pseudonyms, person names scrubbed), the eligibility rules, the seeded allocation into disjoint
+  sets, and the fixed-size units (<code>src/cpappraise/data/</code>).</li>
+<li><strong>11 · Builder B1: fact screens.</strong> Extended the infini-gram client and built the screens that keep a fact only if
+  OLMo 2&rsquo;s training data never contains it and five small models cannot guess its value (<code>contamination.py</code>,
+  <code>facts/</code>).</li>
+<li><strong>12 · Builder B2: prompts and authoring harness.</strong> Wrote the extraction protocol (on the
+  <a href="protocols.html">protocols page</a>), the writer and judge templates for planted items (withheld), and <code>authoring.py</code>,
+  which builds batch files for agents and validates what they return.</li>
+<li><strong>13 · Builder C: the copy rule.</strong> Full prompt below.</li>
+<li><strong>14 · Builder D: statistics and baselines.</strong> AUROC, paired win rate, cluster bootstrap, Holm correction, ICC and
+  Kendall&rsquo;s tau; eleven baseline scores; and the gate analysis (<code>evaluate.py</code>, <code>baselines.py</code>, <code>analysis/q1.py</code>).</li>
+<li><strong>15 · Builder E: planted assembly and checks.</strong> Assembled the planted test items by code (noise, coined names,
+  value swaps, layout) and built the checks run before scoring: item validity, relatedness parity and span agreement
+  (<code>src/cpappraise/plant/</code>).</li>
+<li><strong>16 · Builder F: the LoRA gold standard.</strong> Full prompt below.</li>
+<li><strong>17 · Builder G: gaming and fabrication tests.</strong> Code generators for the gaming tests, generation prompts for a
+  second model, and the fabrication tests (<code>gaming/</code>, <code>fabrication.py</code>). They did not run: Phase 1 stopped at its
+  first gate.</li>
+<li><strong>18 · Builder H: container packaging and renderer.</strong> Full prompt below.</li>
+</ul>
+<h2 id="three-prompts-in-full">Three prompts in full<a class="headerlink" href="#three-prompts-in-full" title="Permanent link">#</a></h2>
+<p>The copy rule (13) and the LoRA trainer (16) are used in every later experiment. The container packaging (18) is the
+starting point for running an appraisal inside a trusted execution environment.</p>
+<h3 id="13-builder-c-the-copy-rule-cr3">13 · Builder C: the copy rule (CR3)<a class="headerlink" href="#13-builder-c-the-copy-rule-cr3" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 00:12 UTC.</em> <strong>What it did.</strong> Implemented the frozen copy rule exactly: which words of later text count as copied from a passage. It wrote one test per clause and every listed edge case, plus the measurement (T18) that decided between the rule and its frozen fallbacks. <strong>What it produced.</strong> <code>src/cpappraise/copyrule.py</code>, <code>src/cpappraise/vcr3.py</code> and their tests. The measurement failed, so the frozen fallback, CR3-B, became the rule (D22). CR3-B is the copy mask in every later experiment.</p>
+<pre><code class="language-text">You are BUILDER C (copy rule) for the cp-appraisal Phase-1 study. Repo: &lt;repo&gt; (Windows; venv `.venv\Scripts\python.exe` with wordfreq 3.1.1, nltk 3.10.3 (Snowball), numpy).
+
+Read first:
+- `BUILD.md`: its rules and the CR3 interface are binding.
+- `PREREGISTRATION.md`, the FROZEN authority, §3.4: copy rule CR3, report-only variants, unit tests, and V-CR3/T18 with its fallback.
+- `planning/PLAN.md` v3 §2.5: the full CR3 text, the M5c definition, and the unit-test case list (&quot;Expected not flagged&quot;, &quot;Expected flagged&quot;, &quot;Known limitations&quot;, &quot;Hygiene&quot;).
+- `planning/critique_gaming_r2.md` (N1, N2) and `planning/critique_methodology_r2.md` (MA2-3), for the failure cases CR3 must handle.
+Implement CR3 EXACTLY as frozen. If a clause is ambiguous, append the question to `planning/BUILD_QUESTIONS.md` (prefix &quot;C:&quot;). Note the interpretation you used in a code comment marked `# AMBIGUITY:`, and continue.
+
+You own: `src/cpappraise/copyrule.py`, `src/cpappraise/vcr3.py`, `tests/test_copyrule.py`, `tests/test_vcr3.py`.
+
+Deliverables:
+1. **`copyrule.py`**:
+   - `words(text) -&gt; list[Word]`, with char spans, the lowercase form and the case-kept form. Clause 1, in order: placeholders, number words, codes, alphanumeric words split at `_`, `-` and camelCase, possessive `'s` dropped; punctuation is never a word.
+   - `is_rare(word)`, clause 2, with stopwords = `wordfreq.top_n_list('en', 150)`.
+   - Name runs, clause 3.
+   - Variant matching, clause 4: Snowball English stems; for OOV words, prefix rules and Damerau–Levenshtein ≤ 1. Implement DL yourself; add no dependency.
+   - Runs and qualification, clause 5, never across window-passage boundaries.
+   - Flags, clause 6, including the window-edge rule.
+   - `flag_spans(source, window_passages, rule=&quot;CR3&quot;)` and `token_mask(...)`, per BUILD.md.
+   - Rules &quot;CR3-A&quot; (variant match = exact plus stem only) and &quot;CR3-B&quot; (long runs need ≥ 6 words) for the frozen fallback.
+   - Report-only &quot;M5s&quot; (strict) and &quot;M5f&quot; (fuzzy character 8-grams, ≥ 40% sentence coverage).
+   - `m5c_flags(source, window_passages, cold_surprisal_fn, tau)` for the collocation variant.
+   - `share_flagged(...)` helpers.
+2. **`tests/test_copyrule.py`**: one test per clause, plus every case in P§2.5:
+   - expected NOT flagged: &quot;Mercy For Animals&quot; in source, then and/for/I/at elsewhere in the window; &quot;Gaussian Process Regression&quot;, then &quot;processing&quot;/&quot;regressions&quot;; methanol↔ethanol; alkane↔alkene; propanol↔propanal; kinesin↔kinesis;
+   - expected flagged: S17, pET28a and BL21 on recurrence; quorvath's, quorvaths, quorvathian, run_quorvath, QuorvathStep; the clipped OOV &quot;quorv&quot;; a sentence-initial &quot;Blue Harbor&quot; recurring as a run; 0.47 and 252,756; a pre-seeded variant in p_1 that does not block a copy from p_j;
+   - known limitations, asserted NOT flagged: &quot;qorvoth&quot; (2 edits); &quot;1987&quot;; lowercase &quot;the blue harbor method&quot;;
+   - hygiene: Cf stripping, no cross-σ matching, window-edge words.
+   Tests must pass with the frozen rule. If a frozen case contradicts the frozen clauses, mark it xfail with a `BUILD_QUESTIONS` reference; don't change the rule.
+3. **`vcr3.py`**, the V-CR3 measurement per PREREG §3.4 (T18):
+   - (a) per-source median share of target words flagged, on 30 seeded unit→target pairs per source;
+   - (b) cross-stream pairing within the same source;
+   - (c) recall of 6 synthetic planted copy events per target: 2 rare words or codes (one in variant form), 2 verbatim runs of 6–8 words, 2 recurring name runs (one sentence-initial); generation is seeded and documented;
+   - (d) mask share on name-free dev D1–D3 against their seminal plant;
+   - the frozen fallback sequence A → B, and output JSON via `cpappraise.privacy.write_json` (numbers only).
+   The ladder units come from builder A (`data/interim/units/ladder.jsonl`, BUILD.md Units interface), and the dev descendants later from builder E. Build and test against synthetic fixtures now, so it is ready to run when those inputs land. The run itself happens later, on the lead's signal.
+
+Rules: LF line endings. Stage explicit paths only; never `git add -A`. End every commit message with &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;.
+
+When done, reply with ≤ 10 lines: clauses implemented, test results (pass and xfail with reasons), timing per 2k-token unit, and open questions.
+</code></pre>
+<h3 id="16-builder-f-the-lora-gold-standard-and-the-learning-analysis">16 · Builder F: the LoRA gold standard and the learning analysis<a class="headerlink" href="#16-builder-f-the-lora-gold-standard-and-the-learning-analysis" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 00:28 UTC.</em> <strong>What it did.</strong> Built the LoRA fine-tuning harness for OLMo-2 (rank 16 and alpha 32 on every projection, one sequence per step, nested checkpoints, fixed seeds, Wikipedia controls matched by domain) and the analysis that compares the cheap score with measured learning. <strong>What it produced.</strong> <code>src/cpappraise/finetune.py</code> and <code>analysis/h1.py</code>, <code>s3.py</code> and <code>neff.py</code>, with tests. Phase 1 never reached this stage. Phase 1b ran it on the 13B, and every later experiment trains through <code>finetune.LoraTrainer</code>.</p>
+<pre><code class="language-text">You are BUILDER F (fine-tuning gold standard and H1 analysis) for the cp-appraisal Phase-1 study. Repo: &lt;repo&gt; (Windows; venv `.venv\Scripts\python.exe`, CPU torch, transformers 5.20.1, peft 0.21.2; GPU runs happen later on RunPod pods via the lead's lanes).
+
+Read first:
+- `BUILD.md`: rules and interfaces, binding.
+- `PREREGISTRATION.md`, the FROZEN authority:
+  - §3.8 (validation ladder: pairs, unit score, LoRA config, gains, pilot, ρ_ws, T5, order);
+  - §2 (H1 and the H1-SEC family, m = 8);
+  - §6 and §7 (T4, T5, T8);
+  - §8 (statistical procedures);
+  - §3.10 (S3 metrics) and §10 (FZ3 scope).
+- `planning/PLAN.md` v3 §5 (ladder details, kind B/C, pilot, power), for construction details.
+- `src/cpappraise/engine.py`, `segment.py` and `jobs.py` (the lead's code; reuse it, don't duplicate).
+Implement exactly what is frozen. If something is ambiguous, append the question to `planning/BUILD_QUESTIONS.md` (prefix &quot;F:&quot;) and continue.
+
+You own: `src/cpappraise/finetune.py`, `src/cpappraise/analysis/h1.py`, `src/cpappraise/analysis/s3.py`, `src/cpappraise/analysis/neff.py`, and `tests/test_finetune.py`, `tests/test_h1.py`, `tests/test_s3.py`.
+
+Deliverables (FZ3; must be ready, tested and fast before the pilot runs, about 1 h after the GPU phase starts):
+1. **`finetune.py`**, exactly per §3.8.
+   - Setup: base OLMo-2-0425-1B frozen in bf16; LoRA params in fp32 under autocast; r = 16, α = 32, dropout 0; target_modules q,k,v,o,gate,up,down_proj given explicitly (PEFT has no OLMo-2 default); default init with the seed setting LoRA-A.
+   - Training: one sequence `[EOS] ⊕ unit` per step, with loss on every token; AdamW (0.9, 0.999, wd 0); constant LR; clip 1.0.
+   - Grid: LR {1e-4, 3e-4} × steps {8, 24}, as nested checkpoints of ONE run (evaluate at step 8 and step 24).
+   - Seeds {11, 22, 33}, with {44, 55, 66} under T8.
+   - Controls: 3 domain-matched Wikipedia 20231101 texts of 2,048 tokens per source × 3 seeds. Write a seeded selector that streams `wikimedia/wikipedia` 20231101.en and picks domain-matched articles by title keyword lists per source (ecology/statistics for R-BOE, molecular biology for R-OWW, chemistry for R-UCH, economics/philosophy for R-EAF), with keywords fixed in code before anything runs. Log the selected titles and revids in a manifest.
+   - Evaluation: the target is scored alone as `[EOS] ⊕ τ(target)` with adapter on and adapter off (base). Store per-target-token base and fine-tuned surprisals as seed means, numbers only. Keep a seeded 2% audit sample of adapters.
+   - Gains: `G^m` with the CR3 mask (unit as source, target as window), using `cpappraise.copyrule.flag_spans` from builder C, in progress, and placeholders masked; `NG_A^m`, raw `NG_A`, and the strict M5s variant.
+   - Speed matters: one process reuses one base model and re-initializes LoRA per run (no reload). Measure s/run on the pod. Target ≤ 7 s per 24-step run on an L40S.
+   - CLI for lanes: `python -m cpappraise.finetune {pilot,main,controls,kindc,pi2c} --units ... --out ... --seeds ... --config ...`, with heartbeat `progress.json` and numbers-only outputs via `cpappraise.privacy.write_json` / npz.
+   - Pilot (§3.8): (24 pairs + 6 kind-C check units) × 3 seeds × 2 LRs, plus controls. Apply the config-choice rule, including the stated-fact answer-bit check from kind-C probes, then T8/SR3 and the ICC(1).
+   - Kind C (P§5.3): answer-bit drops on probes, with the conditions as given.
+2. **`analysis/h1.py`**:
+   - `ρ_ws` per §3.8, using `cpappraise.evaluate` from builder D, in progress; coordinate via the BUILD.md interface;
+   - the source-stratified stream bootstrap, B = 10,000, seed 20261018 (Verifier 20261019);
+   - T4; T5 with 15 unit baselines (`cpappraise.baselines` unit-level), Holm, Δ̂_best and the failure labels from the 90% CI;
+   - the H1-SEC family (m = 8): sec1 kind B (may be &quot;not testable&quot;); sec2 kind-C within-condition ρ; sec3 pooled; sec4 uncontaminated; sec5 U_raw vs raw NG_A; sec6 native paragraphs; sec7 partial ρ on contamination share, log #passages and mean passage length; sec8 M5s on both sides;
+   - the main-run ICC logged before any ρ (§3.8 Order).
+3. **`analysis/neff.py`**: the A3 amendment, n_eff = n / (1 + (m̄ − 1)·ICC_U·ICC_NG) with upper 80% F-limits.
+4. **`analysis/s3.py`**, per §3.10:
+   - precision@1 with ≥ 50% overlap with the f-sentence; recall@k on D1–D3 mention spans, k = 2 × the number of spans;
+   - chance; the heuristics (source: last span, highest-S_in span, most lexical overlap; beneficiary: overlap, S_in, insert order);
+   - T11, T12; name-free and name-bearing items separately; deletion fidelity.
+   Inputs are the planted job's npz arrays (`V`, `V_spans`, `delta`, `mask`, `win_char`, keyed by `hashed_id(variant_id)`), plus variant annotations.
+5. **Tests** run offline in seconds with a tiny random Llama model and synthetic units. Include: a nested-checkpoint test; a gain-sign test where training on the target itself gives a positive gain; and an ICC on synthetic data.
+
+Rules:
+- Never run any model on real ladder units or targets locally; the pod lanes do that after FZ3.
+- LF line endings. Stage explicit paths only; never `git add -A`. End every commit message with &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;.
+
+When done, reply with ≤ 12 lines: what's built, the per-run time estimate, tests passing, the dependencies awaited from builders C and D, and open questions.
+</code></pre>
+<h3 id="18-builder-h-container-packaging-and-the-owner-side-renderer">18 · Builder H: container packaging and the owner-side renderer<a class="headerlink" href="#18-builder-h-container-packaging-and-the-owner-side-renderer" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 00:29 UTC.</em> <strong>What it did.</strong> Packaged the Phase 1 scorer to run offline inside a trusted execution environment (dstack): a network guard, a check of the mounted weights against a manifest, an output schema that refuses text, a Dockerfile pinned by digest, the compose files, and a renderer that joins the numbers with the owner&rsquo;s text on the owner&rsquo;s own machine. <strong>What it produced.</strong> <code>src/cpappraise/appraise.py</code>, <code>guard.py</code>, <code>render.py</code>, <code>docker/</code> and tests. The offline entrypoint passed its final GPU test with all 13 checks. Building and pushing the image itself was left open.</p>
+<pre><code class="language-text">You are BUILDER H (TEE-ready packaging and the owner-side renderer) for the cp-appraisal Phase-1 study. Repo: &lt;repo&gt; (Windows; venv `.venv\Scripts\python.exe`). There is NO Docker locally.
+
+Read first:
+- `BUILD.md`: rules and interfaces, binding.
+- `PREREGISTRATION.md`, the FROZEN authority: §3.3–3.5 (what is computed), §3.10 S2 (policy π with HMAC seed), §5, §9.4 (cut order), §14.
+- `planning/PLAN.md` v3 §12: the TEE packaging spec, tests and PI defaults.
+- `planning/PI_DECISIONS.md`:
+  - PD1: value maps leave the TEE at passage + span granularity only; token level stays owner-side.
+  - PD2: image option (b), i.e. Dockerfile, compose and app-compose.json, with an offline entrypoint test on a pod. No GitHub push.
+  - PD4: template narrative; any LLM narrative is off by default.
+- `planning/FACTS_models.md` §6: dstack packaging facts, e.g. compose inside app-compose.json and the GPU reservation syntax.
+- `src/cpappraise/privacy.py`, `engine.py`, `segment.py`, `score.py`, `payoff.py` and `quadrant.py` (the lead's; reuse them).
+The TEE trust model is OUT of scope; don't analyze it. If something is ambiguous, append the question to `planning/BUILD_QUESTIONS.md` (prefix &quot;H:&quot;) and continue.
+
+You own: `src/cpappraise/appraise.py`, `src/cpappraise/guard.py`, `src/cpappraise/render.py`, `docker/`, and `tests/test_appraise.py`, `tests/test_guard.py`, `tests/test_render.py`.
+
+Deliverables:
+1. **`guard.py`**:
+   - an in-process socket guard that refuses every non-AF_UNIX connect (AF_UNIX stays allowed for `/var/run/dstack.sock`);
+   - offline env enforcement (HF_HUB_OFFLINE=1, TRANSFORMERS_OFFLINE=1);
+   - a sha256 manifest check of mounted weights;
+   - allowlisted structured JSON logging: exceptions re-raised as type plus code location only, and library warnings routed through the same filter;
+   - `--debug-local` refuses to run if `/var/run/dstack.sock` exists or any `DSTACK_*` env var is set.
+2. **`appraise.py`**, the entrypoint `python -m cpappraise.appraise --input /data/in --models /models --output /data/out [--config /app/configs/appraise.yaml]`. It:
+   - reads records (`.txt`, `.md`, or `.jsonl` with items) from the input dir;
+   - segments and scores them (S_in, S_cold, K, P_raw, P_corr with CR3 via `cpappraise.copyrule`, which builder C is building; ROS);
+   - applies production policy π (top 25% by S_in plus a uniform 25% of the rest, Horvitz–Thompson Û), with its seed = HMAC(secret, record hash) and the secret from env, never output;
+   - assigns quadrant labels with x_ref from a θ artifact under /models (or config);
+   - writes outputs: `scores.parquet` (or json) per passage; `edges` (descendants); `value_map` at PASSAGE + SPAN granularity only (PD1); `aggregates.json`; `run_manifest.json` with model shas, config hash, code version and timings;
+   - runs a schema check that rejects any string column other than hashes and enums, and salts record ids (`privacy.hashed_id`).
+3. **`render.py`**, the owner-side renderer per PI-1 / PD4: `python -m cpappraise.render --map &lt;value_map&gt; --records &lt;owner dir&gt; --out &lt;html&gt;`.
+   - It joins the map with the owner's text into an HTML heatmap (token colour = I_t or Δ, copy tokens hatched; token level is allowed here because it runs owner-side).
+   - It builds a claims table (id, metric, value, location) and a template narrative from it. Example: &quot;Passage 7 was the record's most valuable: surprising on arrival (x bits/token vs median y) and z later tokens got w bits cheaper; the sentence ... carried p% of the payoff; q% of savings were copying.&quot;
+   - The optional LLM narrative is off by default. If ever enabled, a checker deletes any sentence whose numbers don't match the claims table to rounding.
+4. **`docker/`**:
+   - `Dockerfile` with the base image pinned by digest. Choose a CUDA 13-compatible PyTorch runtime base; the dstack guest driver is 595.x per FACTS. Look up a real digest via the registry API and record it.
+   - deps from `requirements/base.txt` plus torch, with hashes where feasible, and the wordfreq data included;
+   - `docker-compose.yaml` with the GPU reservation `deploy.resources.reservations.devices: [{driver: nvidia, count: all, capabilities: [gpu]}]`, NO `ports:`, read-only `/models` and `/data/in`, and a writable `/data/out`;
+   - `make_app_compose.py`, which generates a dstack `app-compose.json` (manifest_version 2, runner docker-compose, the compose file embedded) and validates it against the fields in FACTS_models §6.
+5. **Tests**, offline: canary (no canary and no 6-word input sequence in any output or log); offline (the socket guard blocks network; with no weights the run fails cleanly without attempting a download); determinism (identical outputs on identical input, using a tiny random model); output schema; compose validation (GPU reservation present, no ports); render (claims match numbers).
+   Also add a lane config `configs/lane_p6_image.json` for the P6 pod test, per PD2 option (b): run the entrypoint offline on a pod with mounted weights and synthetic inputs, plus the canary scan.
+
+Rules: LF line endings. Stage explicit paths only; never `git add -A`. End every commit message with &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;.
+
+When done, reply with ≤ 12 lines: what's built, the base image and digest chosen, tests passing, and open questions.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#all-builders-in-one-line-each">All builders, in one line each</a></li>
+<li><a href="#three-prompts-in-full">Three prompts in full</a><ul>
+<li><a href="#13-builder-c-the-copy-rule-cr3">13 · Builder C: the copy rule (CR3)</a></li>
+<li><a href="#16-builder-f-the-lora-gold-standard-and-the-learning-analysis">16 · Builder F: the LoRA gold standard and the learning analysis</a></li>
+<li><a href="#18-builder-h-container-packaging-and-the-owner-side-renderer">18 · Builder H: container packaging and the owner-side renderer</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

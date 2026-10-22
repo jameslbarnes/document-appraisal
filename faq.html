@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Questions people ask · Measuring what a document teaches a model</title>
+<meta name="description" content="Short answers to the questions that came up most while running the study.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a class="active" href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Questions people ask</h1>
+      <p class="summary">Short answers to the questions that came up most while running the study.</p>
+<h3 id="isnt-this-just-fine-tuning-works">Isn&rsquo;t this just &ldquo;fine-tuning works&rdquo;?<a class="headerlink" href="#isnt-this-just-fine-tuning-works" title="Permanent link">#</a></h3>
+<p>Fine-tuning is the instrument, not the claim. Nobody faults a drug trial for using a known treatment. The claim is
+that a <em>controlled</em> with/without comparison gives a believable account of what a document changes in a model, and
+that the shortcuts do not. The comparison needs a fair &ldquo;without&rdquo;, matched doses, held-out tests and outputs that
+report numbers only. The shortcuts are asking a model, and cheap scores computed without training. The interesting
+results are where the obvious story breaks:</p>
+<ul>
+<li>the measurement cannot tell true from false;</li>
+<li>one reading changes knowledge but not methods;</li>
+<li>famous is not the same as influential.</li>
+</ul>
+<h3 id="why-not-just-ask-a-model-whether-an-idea-is-new">Why not just ask a model whether an idea is new?<a class="headerlink" href="#why-not-just-ask-a-model-whether-an-idea-is-new" title="Permanent link">#</a></h3>
+<p>Models make poor novelty judges. They flatter, especially when the author seems invested. They cannot see past their
+training cutoff, and they report their own knowledge unreliably. A measurement of what the model actually learns
+does not depend on who is asking. A small planned demonstration, the &ldquo;measure, don&rsquo;t ask&rdquo; contrast, would show this
+directly.</p>
+<h3 id="can-it-tell-me-whether-my-idea-is-right">Can it tell me whether my idea is right?<a class="headerlink" href="#can-it-tell-me-whether-my-idea-is-right" title="Permanent link">#</a></h3>
+<p>No. A copy of a paper with altered numbers scores the same as the real one. Truth has to come from somewhere else:
+checking the claims that can be checked, later replications, or warranties in a deal. See W2 in the
+<a href="agenda.html#w2-truth">agenda</a>.</p>
+<h3 id="does-it-work-for-agent-traces-lab-notes-or-journals-not-just-papers">Does it work for agent traces, lab notes or journals, not just papers?<a class="headerlink" href="#does-it-work-for-agent-traces-lab-notes-or-journals-not-just-papers" title="Permanent link">#</a></h3>
+<p>The method is the same. Train with and without the material, then compare. The tests change. For agent traces the
+natural test is behavior: run the agent on similar tasks with and without the trace and compare what it does. That
+has not been run yet. See the process-value memo in <a href="designs.html">design memos</a>.</p>
+<h3 id="how-much-does-it-cost">How much does it cost?<a class="headerlink" href="#how-much-does-it-cost" title="Permanent link">#</a></h3>
+<p>About $1 per document across an open 13B model and a frontier model, in the main-experiment setup. About $0.10 with
+the open model alone. The whole four-day study cost about $140 in compute.</p>
+<h3 id="could-a-group-pool-its-members-material-and-build-a-better-model">Could a group pool its members&rsquo; material and build a better model?<a class="headerlink" href="#could-a-group-pool-its-members-material-and-build-a-better-model" title="Permanent link">#</a></h3>
+<p>Within the group&rsquo;s own fields, plausibly, while the knowledge stays exclusive. Across the board, no: the labs have
+far more compute and data. Whether a pooled collection is worth more than the sum of its parts is an open, testable
+question. See W5 in the <a href="agenda.html#w5-pooling-synergy-and-credit">agenda</a>.</p>
+<h3 id="can-a-license-stop-labs-from-training-on-freely-available-papers">Can a license stop labs from training on freely available papers?<a class="headerlink" href="#can-a-license-stop-labs-from-training-on-freely-available-papers" title="Permanent link">#</a></h3>
+<p>Not reliably by itself. In the US, if training is fair use, a license condition does not bite; contracts people
+actually accept bind more strongly. In the EU, a properly stated machine-readable opt-out has legal force. What
+reliably helps is keeping valuable material (data, reviews, process records) behind access agreements, and making
+licensing the norm. See W8 in the <a href="agenda.html#w8-consent-licensing-and-institutions">agenda</a>. This is not legal
+advice.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#isnt-this-just-fine-tuning-works">Isn&rsquo;t this just &ldquo;fine-tuning works&rdquo;?</a></li>
+<li><a href="#why-not-just-ask-a-model-whether-an-idea-is-new">Why not just ask a model whether an idea is new?</a></li>
+<li><a href="#can-it-tell-me-whether-my-idea-is-right">Can it tell me whether my idea is right?</a></li>
+<li><a href="#does-it-work-for-agent-traces-lab-notes-or-journals-not-just-papers">Does it work for agent traces, lab notes or journals, not just papers?</a></li>
+<li><a href="#how-much-does-it-cost">How much does it cost?</a></li>
+<li><a href="#could-a-group-pool-its-members-material-and-build-a-better-model">Could a group pool its members&rsquo; material and build a better model?</a></li>
+<li><a href="#can-a-license-stop-labs-from-training-on-freely-available-papers">Can a license stop labs from training on freely available papers?</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

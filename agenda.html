@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research agenda · Measuring what a document teaches a model</title>
+<meta name="description" content="What it would take to make real appraisal possible, meaning believable, private, behavioral and affordable, organized as eight workstreams with first experiments and rough costs.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a class="active" href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Research agenda</h1>
+      <p class="summary">What it would take to make real appraisal possible, meaning believable, private, behavioral and affordable, organized as eight workstreams with first experiments and rough costs.</p>
+<h2 id="the-goal">The goal<a class="headerlink" href="#the-goal" title="Permanent link">#</a></h2>
+<p>A contributor should be able to learn what their material (a paper, notes, data, agent traces) adds to a model. A
+buyer should be able to learn what it would add to <em>theirs</em>. Neither side should have to hand over its secrets, and
+the answer should be believable to both.</p>
+<h2 id="the-bar-and-where-we-are">The bar, and where we are<a class="headerlink" href="#the-bar-and-where-we-are" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>What it means</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Measured, not asked</td>
+<td>Based on what a model does after training, not on a model&rsquo;s opinion</td>
+<td><strong>Met.</strong> Cheap scores predict learning only weakly and opinions are unreliable; the with/without design works</td>
+</tr>
+<tr>
+<td>A fair &ldquo;without&rdquo;</td>
+<td>The comparison model read comparable material, so the result is the document&rsquo;s own contribution</td>
+<td><strong>Met in design.</strong> The increment works; it needs better same-topic controls</td>
+</tr>
+<tr>
+<td>Behavioral</td>
+<td>Shows what the model does differently, not only what it predicts</td>
+<td><strong>Not yet.</strong> One reading barely changes behavior; we lack field-specific task tests</td>
+</tr>
+<tr>
+<td>Truth-aware</td>
+<td>Does not pay for fabrication</td>
+<td><strong>Not met.</strong> Altered copies score the same</td>
+</tr>
+<tr>
+<td>Private</td>
+<td>Works without disclosing the document, and the tests do not leak it</td>
+<td><strong>Designed, not built.</strong> Enclave protocol and red team only</td>
+</tr>
+<tr>
+<td>Comparable and reproducible</td>
+<td>Same recipe, seeds and open reference models; matched doses across models</td>
+<td><strong>Mostly met</strong> for two model families</td>
+</tr>
+<tr>
+<td>Legible</td>
+<td>Plain-language reports a contributor or buyer can act on</td>
+<td><strong>Started.</strong> One illustration exists</td>
+</tr>
+<tr>
+<td>Affordable</td>
+<td>Cents to dollars per document</td>
+<td><strong>Met for research.</strong> About $1 per document; not automated</td>
+</tr>
+</tbody>
+</table>
+<h2 id="workstreams">Workstreams<a class="headerlink" href="#workstreams" title="Permanent link">#</a></h2>
+<h3 id="w1-behavior-and-task-tests">W1. Behavior and task tests<a class="headerlink" href="#w1-behavior-and-task-tests" title="Permanent link">#</a></h3>
+<p><strong>Question.</strong> When does training on a document change what a model <em>does</em>, and how do we measure that for a given
+field?</p>
+<ul>
+<li><strong>What we know.</strong> One reading of a landmark Navier–Stokes paper changed predictions but not problem-solving.
+    Knowledge sticks before methods.</li>
+<li><strong>First experiments:</strong><ul>
+<li><em>Method from examples.</em> Train on the paper plus several follow-ups that apply its method, then test on a held-out
+    follow-up. Does seeing the method used repeatedly make the model use it? About $10.</li>
+<li><em>Same-topic control.</em> On a licensing-audit paper, ask practical scenario questions. Compare the paper against a
+    generic licensing primer and against a competing paper, so that &ldquo;anything on the topic helps&rdquo; is ruled out. About
+    $5.</li>
+<li><em>Field task panels.</em> Build small, frozen, probability-scored task sets per field from sources other than the
+    document. Use standard benchmarks only as no-harm checks.</li>
+</ul>
+</li>
+<li><strong>Open question.</strong> Should appraisals report behavior at a &ldquo;realistic&rdquo; single-exposure dose, at a heavier dose, or
+    both?</li>
+</ul>
+<h3 id="w2-truth">W2. Truth<a class="headerlink" href="#w2-truth" title="Permanent link">#</a></h3>
+<p><strong>Question.</strong> How can an appraisal stop rewarding fabricated or wrong claims?</p>
+<ul>
+<li><strong>What we know.</strong> Altered copies score the same as true ones, and false claims may even register more strongly.
+    Later papers&rsquo; text mostly restates what a paper did, not its numbers. Matching the published record is not truth:
+    later papers echo the original.</li>
+<li><strong>First experiments:</strong><ul>
+<li><em>Nonsense controls.</em> Add a word-shuffled copy and a falsified copy to every behavior test. Real content should
+    beat both on questions with right answers. About $5–8 alongside W1.</li>
+<li><em>Replication pairs.</em> Collect papers whose results were later independently replicated, or failed to replicate. Test
+    whether training on a paper that failed to replicate makes the model worse at predicting the replication. Scoping
+    costs nothing; running it costs tens of dollars.</li>
+<li><em>Verification of checkable claims.</em> Agents rerun code, recheck data and re-derive math, prioritizing the claims
+    the appraisal shows registering most strongly.</li>
+</ul>
+</li>
+<li><strong>Design direction: living appraisal.</strong> Measure contribution at upload, then let truth credit accrue as
+    independent work arrives.</li>
+</ul>
+<h3 id="w3-automation-and-a-standard-recipe">W3. Automation and a standard recipe<a class="headerlink" href="#w3-automation-and-a-standard-recipe" title="Permanent link">#</a></h3>
+<p><strong>Question.</strong> Can anyone appraise a document with one command and get a comparable result?</p>
+<ul>
+<li><strong>Needed:</strong><ul>
+<li>automatic probe and item writing with independent checkers;</li>
+<li>automatic selection of controls, comparables and follow-ups;</li>
+<li>per-model dose calibration tables;</li>
+<li>a report schema and renderer;</li>
+<li>a public reference panel for comparisons.</li>
+</ul>
+</li>
+<li><strong>First milestone.</strong> A command that takes a public PDF and produces a plain-language report on the open model, for
+    about $0.10–1.</li>
+</ul>
+<h3 id="w4-confidential-appraisal-in-an-enclave">W4. Confidential appraisal, in an enclave<a class="headerlink" href="#w4-confidential-appraisal-in-an-enclave" title="Permanent link">#</a></h3>
+<p><strong>Question.</strong> Can the measurement run where neither party sees the other&rsquo;s secrets? The buyer&rsquo;s evaluation would meet
+the seller&rsquo;s document, and only bounded numbers would leave.</p>
+<ul>
+<li><strong>What we know.</strong> The protocol design exists, along with a red team. Tier averages can leak a hidden test item, so
+    outputs need budgets and panels need contributor approval. Differential privacy at these sizes costs too much
+    accuracy.</li>
+<li><strong>First experiments:</strong><ul>
+<li>port the open-model path to a confidential GPU enclave;</li>
+<li>define the output budget and the attestation flow;</li>
+<li>run one appraisal end to end with a buyer-supplied evaluation.</li>
+</ul>
+</li>
+<li><strong>Natural partners.</strong> Teams that run confidential-compute infrastructure, and the authors of NDAI Agreements.</li>
+</ul>
+<h3 id="w5-pooling-synergy-and-credit">W5. Pooling, synergy and credit<a class="headerlink" href="#w5-pooling-synergy-and-credit" title="Permanent link">#</a></h3>
+<p><strong>Question.</strong> Is a pooled collection, such as a co-op&rsquo;s members&rsquo; material, worth more than the sum of its parts,
+within a field and across fields? How should credit be split?</p>
+<ul>
+<li>
+<p><strong>First experiment.</strong> Use 3–4 bodies of material from different fields; public papers can stand in for private
+    material. Train on each alone, then pooled. Measure:</p>
+<ul>
+<li>within-field gains;</li>
+<li>cross-field tasks, where one field&rsquo;s method is applied to another field&rsquo;s problem;</li>
+<li>synergy beyond the sum of the parts.</li>
+</ul>
+<p>Leave-one-out runs and Shapley values give each contributor&rsquo;s share. About $10–30.
+- <strong>What we know.</strong> Related background helped a document&rsquo;s own specifics register (1.2–1.6 times). New material can
+also crowd out old expectations.</p>
+</li>
+</ul>
+<h3 id="w6-model-coverage-and-dose">W6. Model coverage and dose<a class="headerlink" href="#w6-model-coverage-and-dose" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>A second frontier family,</strong> such as Kimi or Qwen on Tinker, so that &ldquo;open matches frontier&rdquo; does not rest on one
+    model.</li>
+<li><strong>Full fine-tuning against LoRA.</strong> LoRA probably understates effects.</li>
+<li><strong>Dose ladders,</strong> to see where profiles diverge.</li>
+<li><strong>More fields.</strong> Biology and math papers rarely had enough recent predecessors for the increment test.</li>
+</ul>
+<h3 id="w7-light-validation-against-the-world">W7. Light validation against the world<a class="headerlink" href="#w7-light-validation-against-the-world" title="Permanent link">#</a></h3>
+<p>Keep this small. Check whether measured contribution lines up with signals people already trust: expert judgments,
+adoption, replication. A large retrospective impact study was judged overkill for now.</p>
+<h3 id="w8-consent-licensing-and-institutions">W8. Consent, licensing and institutions<a class="headerlink" href="#w8-consent-licensing-and-institutions" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Consent first.</strong> Opt-in licensing, machine-readable opt-outs, and contracts for bulk access. A public notice
+    alone binds little in the US.</li>
+<li><strong>A journal that asks first.</strong> Author consent before any AI licensing, with payment tied to measured contribution.</li>
+<li><strong>Co-op governance.</strong> Members approve test panels; credit and revenue follow measured contribution.</li>
+<li><strong>The &ldquo;measure, don&rsquo;t ask&rdquo; demonstration</strong> (about $2). Show that a model&rsquo;s novelty ratings shift with framing
+    (&ldquo;my idea&rdquo; vs &ldquo;a paper I found&rdquo;), while the measurement does not.</li>
+</ul>
+<h2 id="a-flagship-pilot-one-researchers-unpublished-body-of-work">A flagship pilot: one researcher&rsquo;s unpublished body of work<a class="headerlink" href="#a-flagship-pilot-one-researchers-unpublished-body-of-work" title="Permanent link">#</a></h2>
+<p>One paper changed what models know, not how they approach problems. Would a researcher&rsquo;s <em>whole</em> unpublished corpus
+(notes, drafts, designs, abandoned ideas) change how a model thinks in that researcher&rsquo;s fields? This pilot would
+exercise several workstreams at once: W1 behavior, W4 enclave, W5 pooling and W8 consent.</p>
+<ul>
+<li><strong>Split.</strong> Train on most of the corpus. Hold out the most recent documents and a random sample.</li>
+<li><strong>Arms:</strong><ul>
+<li>the unpublished corpus;</li>
+<li>the researcher&rsquo;s <em>published</em> work only, so the increment shows what the unpublished material adds;</li>
+<li>a same-size, topic-matched corpus by other researchers, to rule out &ldquo;anything in this field&rdquo;;</li>
+<li>a word-shuffled corpus, to separate vocabulary from substance;</li>
+<li>no training.</li>
+</ul>
+</li>
+<li><strong>Tests:</strong><ul>
+<li><strong>Prediction.</strong> Does the model better predict the held-out documents?</li>
+<li><strong>Decision points.</strong> At the decision points in those documents, scored by probability with no judge, does it pick
+    the researcher&rsquo;s real choices?</li>
+<li><strong>New problems.</strong> On new problems in the researcher&rsquo;s fields, do answers differ in approach, judged blind by the
+    researcher and by colleagues?</li>
+<li><strong>No-harm.</strong> The usual side-effect checks.</li>
+</ul>
+</li>
+<li><strong>Privacy.</strong> The corpus never leaves an enclave or GPUs the researcher controls. Trained weights are destroyed after
+    measurement. Only bounded numbers and researcher-approved examples come out.</li>
+<li><strong>Cost.</strong> Small: roughly tens of dollars for a corpus of a few million tokens on an open model.</li>
+</ul>
+<h2 id="near-term-plan">Near-term plan<a class="headerlink" href="#near-term-plan" title="Permanent link">#</a></h2>
+<ol>
+<li><strong>Write the paper</strong> (arXiv) with the Navier–Stokes case as the lead, the 30-paper results as the general evidence,
+      and truth-blindness stated plainly. A verifier and an adversary review it before posting.</li>
+<li><strong>The &ldquo;measure, don&rsquo;t ask&rdquo; demonstration</strong> (W8), about $2.</li>
+<li><strong>The licensing scenario test with nonsense and same-topic controls</strong> (W1 and W2), about $5–8.</li>
+<li><strong>Method from examples</strong> on Navier–Stokes (W1), about $10.</li>
+<li><strong>An enclave prototype</strong> with a confidential-compute partner (W4), ideally used to run the flagship pilot on a consenting researcher&rsquo;s
+      unpublished corpus.</li>
+<li><strong>A pooling pilot</strong> (W5), about $10–30.</li>
+</ol>
+<h2 id="how-you-can-help">How you can help<a class="headerlink" href="#how-you-can-help" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Bring a document.</strong> Public, or private with consent.</li>
+<li><strong>Bring a test.</strong> The best tests are the questions you would actually use to decide whether a model got better at
+    your work.</li>
+<li><strong>Run it on your own model</strong> and compare with our reference models.</li>
+<li><strong>Host the enclave,</strong> or review the confidential protocol.</li>
+<li><strong>Attack the method.</strong> Every result here survived adversary review, but more eyes find more holes.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-goal">The goal</a></li>
+<li><a href="#the-bar-and-where-we-are">The bar, and where we are</a></li>
+<li><a href="#workstreams">Workstreams</a><ul>
+<li><a href="#w1-behavior-and-task-tests">W1. Behavior and task tests</a></li>
+<li><a href="#w2-truth">W2. Truth</a></li>
+<li><a href="#w3-automation-and-a-standard-recipe">W3. Automation and a standard recipe</a></li>
+<li><a href="#w4-confidential-appraisal-in-an-enclave">W4. Confidential appraisal, in an enclave</a></li>
+<li><a href="#w5-pooling-synergy-and-credit">W5. Pooling, synergy and credit</a></li>
+<li><a href="#w6-model-coverage-and-dose">W6. Model coverage and dose</a></li>
+<li><a href="#w7-light-validation-against-the-world">W7. Light validation against the world</a></li>
+<li><a href="#w8-consent-licensing-and-institutions">W8. Consent, licensing and institutions</a></li>
+</ul>
+</li>
+<li><a href="#a-flagship-pilot-one-researchers-unpublished-body-of-work">A flagship pilot: one researcher&rsquo;s unpublished body of work</a></li>
+<li><a href="#near-term-plan">Near-term plan</a></li>
+<li><a href="#how-you-can-help">How you can help</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

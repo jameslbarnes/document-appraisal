@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navier–Stokes behavior test prompts · Measuring what a document teaches a model</title>
+<meta name="description" content="The prompts for the behavior test, and for the second agent that resumed it from the same worktree after an accidental stop, without redoing paid work.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a class="active" href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Navier–Stokes behavior test prompts</h1>
+      <p class="summary">The prompts for the behavior test, and for the second agent that resumed it from the same worktree after an accidental stop, without redoing paid work.</p>
+<p>The behavior test asked a different question: did training on the Navier–Stokes paper change how the models
+approach related mathematical problems, not only how well they predict text? The first agent built the items and the
+code, froze them in a short note, ran the open model and calibrated the frontier model&rsquo;s dose. It was then stopped by
+accident. A second agent resumed in the same worktree and finished without redoing any paid work.</p>
+<p>The resume prompt (118) is a pattern worth reusing. It states what is done and what is not, says which files to verify
+before acting, keeps the budget cumulative with what was already spent, and binds the new agent to the frozen rules.
+How the prompts were edited is explained on the <a href="index.html">catalog page</a>.</p>
+<h3 id="117-the-behavior-test">117 · The behavior test<a class="headerlink" href="#117-the-behavior-test" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-21 13:17 UTC, in its own git worktree.</em> <strong>What it did.</strong> Wrote multiple-choice items from follow-up papers (the real next step against three plausible distractors), checkable computation items, unrelated-math controls and a no-harm slice, and froze the items and the scoring rule in <code>planning/NS_BEHAVIOR_PREREG.md</code> before any trained model saw an item. It then trained and scored OLMo-2-13B and calibrated DeepSeek-V3.1&rsquo;s dose. It was stopped by accident just after OLMo&rsquo;s lane finished. <strong>What it produced.</strong> The code (<code>src/cpappraise/nsbehavior/</code>, <code>scripts/ns_behavior/</code>, <code>tests/test_ns_behavior.py</code>); the frozen items (70 next-step, 30 result, 30 computation, 24 unrelated, 100 no-harm), with only their hashes in git; and OLMo&rsquo;s results.</p>
+<pre><code class="language-text">You are running a new experiment in James Barnes's appraisal study (repo &lt;repo&gt;; you are in an isolated git worktree of it). James approved it (&quot;go for it&quot;); the budget is below.
+
+## James's question
+&quot;How did training on the Navier–Stokes paper change how the model approaches mathematical problems going forward, especially the frontier model versus the small one?&quot; Earlier work measured only text prediction. This experiment measures behaviour: with vs without the paper, on problems where its method should help.
+
+## Prior work to read first
+- planning/NS_PILOT_REPORT.md (the pilot). Code: src/cpappraise/ns_pilot.py, scripts/ns_pilot.py. Outputs: runs/phase1c/ns_pilot/. Sources: data/manifests/ns_pilot_sources.json.
+  - Artifact: OpenAI, &quot;Finite Time Blowup for Navier–Stokes&quot; (2026-09-08).
+  - Control: Némethi &amp; Schefler, arXiv 2603.26189, packed into the artifact's sequence profile.
+  - 13 held-out related documents, including the follow-ups applying the method to Euler, Boussinesq and IPM. Cleaned texts are in the gitignored data/interim (find them through the pilot code).
+- planning/MAIN_EXPERIMENT_REPORT.md and the main-experiment code (scripts/main_exp/, src/cpappraise/mainexp/) for:
+  - per-model dose calibration (DeepSeek-V3.1 fits about 2.6x harder than OLMo at the same LR; the main experiment matched them at OLMo LR 1e-4 vs DeepSeek 5.5e-5 on short papers);
+  - the Tinker helpers in scripts/main_exp/tinker_common.py (service, spend guard, checkpoint cleanup, billing);
+  - the one-epoch OLMo runner and lane configs.
+- If the gitignored inputs you need are missing from your worktree, copy them read-only from the main checkout's data/interim, runs/ and data/raw. Never modify the main checkout.
+
+## Design (required core)
+- **Models.** OLMo-2-1124-13B base, on RunPod through the existing lane machinery, and DeepSeek-V3.1 through Tinker.
+- **Arms.** The NS paper (A) vs the pilot's control paper, packed to the same profile. Seeds 11 and 22. Also score each base model.
+- **Matched light dose.**
+  - OLMo: LR 1e-4, one epoch over the paper.
+  - DeepSeek: calibrate the LR (1 seed, 2–3 LRs) so its drop in the paper's own loss after one epoch matches OLMo's. Use the main experiment's dose definition.
+  - Report the achieved drops.
+- **Question sets** (the core work):
+  1. **Next-step items (primary).** About 60–80 items from the held-out follow-up papers that apply the blow-up method to other equations. Exclude critiques, essays and the priority page.
+     - At a decision point in a construction or proof (choice of ansatz, scaling, amplification mechanism, what to estimate or control next, how to close the argument), give the preceding context (≤ about 600 tokens).
+     - Offer the real next step (short, ≤ about 40 tokens) plus 3 plausible distractors that are mathematically sensible but not what the paper does. Match them in length and style.
+  2. **Result items.** About 20–30 items, in the same format, where the answer is a result or quantity the follow-up establishes.
+  3. **Checkable computation items.** About 20–30 multiple-choice items on related PDEs: scaling exponents for self-similar ansätze, conserved or controlling quantities, critical scalings. Verify every answer key (SymPy where possible).
+  4. **Unrelated-math controls.** About 20 next-step items, same format, from a math area unrelated to both the artifact and the control paper.
+  5. **No-harm slice.** About 100 items from a standard open math benchmark (e.g., Hendrycks MATH or GSM8K, MIT-licensed), scored by the log-probability of the reference answer.
+- **Writing and checking items.**
+  - Item writers work from the follow-ups and standard texts, never from the NS paper.
+  - A separate checker verifies each item:
+    - the real step is uniquely right in context;
+    - the distractors are plausible but wrong;
+    - the options match in length and style.
+  - Automatically drop items whose real step shares a long verbatim run with the NS paper (≥ 6 words; reuse the CR3-B copy rule code). The point is to test approach, not memory.
+  - Freeze all items, and the scoring rule, before scoring any trained state. Write a short planning/NS_BEHAVIOR_PREREG.md and commit it. James does not want pre-registration ceremony; one short frozen note is enough.
+- **Scoring (judge-free).**
+  - For each item, compute the model's log-probability of each option given the context.
+  - Primary metric: the shift in log-odds of the true option versus the mean distractor (or the probability mass on the true option), A minus control, paired by seed.
+  - Secondary metrics: the change in accuracy (argmax option); a per-token-normalized variant.
+  - Intervals: item-cluster bootstrap, B = 10,000, seed 20261018.
+  - Report per model and per item set.
+  - Frontier vs small: the ratio of the mean shifts, and the Spearman correlation of per-item shifts.
+- **Strategy answers** (frontier model only; OLMo base cannot answer these).
+  - About 12–15 open questions, e.g., &quot;How would you try to prove finite-time blow-up for &lt;related equation or setting&gt;? Outline the strategy.&quot;
+  - Sample from DeepSeek-V3.1 base, A and control, both seeds, with the chat template. Use deterministic or low-temperature sampling with a fixed seed, so side-by-side comparisons are fair.
+  - Blind grading:
+    - Shuffle the answers and give them random labels.
+    - The grader scores each against a fixed rubric of the method's ingredients (written beforehand from the paper's abstract and introduction), plus overall mathematical soundness.
+    - Record which answers show the NS method's influence and whether they are sound.
+  - Write a gitignored side-by-side file, data/interim/ns_behavior/SIDE_BY_SIDE.md, with the best illustrative pairs.
+
+## Optional, only if the projected total stays within the cap (in this order)
+1. A heavier matched dose: continue the light runs to 3 epochs. Check that the two models' own-loss drops still match, and rescore all sets.
+2. Rescore the pilot's text panel (related / background / side / Lean windows) at the matched doses. The pilot's 4-epoch divergence was at an unmatched dose, so this tests whether it disappears when doses match.
+
+## Budget and stop rules
+- Hard caps: total $15, Tinker ≤ $12, RunPod ≤ $3.
+- Project costs before each paid stage. Skip the optional parts if needed. Stop and report rather than exceed a cap.
+- If Tinker returns 402 (billing), stop and report.
+
+## Operational rules (binding)
+- **Tinker key.** Never print, log or commit it. Load your API key (from an env file; never printed) through scripts/main_exp/tinker_common.service(), with TINKER_TELEMETRY=0.
+- **RunPod key.** Never print it; the existing scripts load your API key from an env file.
+- **Tinker checkpoints.** Delete every checkpoint after its scoring and sampling, and verify that the listing is empty at the end.
+- **Pods.** If your GPU account is shared, only touch pods you created.
+  - Only create and touch pods with your own stage prefix (1C-NSB).
+  - Launch long lanes detached (nohup, via scripts/lane_patient.sh); tool background tasks die at 2 h.
+  - Terminate every pod you create.
+  - Write your pod lines to runs/phase1c/ns_behavior/runpod_ledger_1C-NSB.jsonl (see scripts/main_exp/ledger_lines.py), and leave the tracked runs/runpod_ledger.jsonl unchanged.
+- **Data (D52).** Public documents are fine for internal measurement. Do not redistribute source texts.
+  - Committed outputs are numbers only (privacy.write_json).
+  - Item texts, model answers and paper texts stay in the gitignored data/interim/ns_behavior/.
+- **Downloads.** Put any new downloads in their own new directory, and run Python that reads them with -I.
+- **Refusals.** If a subagent or classifier refuses something, do not route around it; report it.
+- **Git.** Stage explicit paths only, never `git add -A`. End every commit message with: Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;
+- **Code.** Put code in src/cpappraise/nsbehavior/ and scripts/ns_behavior/, with CPU tests in tests/test_ns_behavior.py. Reuse existing code rather than duplicating it. Run the full test suite before your final commit.
+
+## Deliverables
+- **planning/NS_BEHAVIOR_REPORT.md.** Open with a plain-language section; James finds tables of bits and ranks unhelpful. Answer, in words:
+  - Did reading the paper change how each model approaches these problems?
+  - How did the frontier model differ from the small one?
+  - Does it recite the paper or apply its method?
+  - Did anything else get worse?
+
+  Put the numbers after that, as backing.
+- **Committed numbers** under runs/phase1c/ns_behavior/.
+- **Your final message:**
+  - the plain-language answer;
+  - key numbers with intervals;
+  - 2–3 short side-by-side excerpts;
+  - achieved doses;
+  - spend (Tinker estimate plus billed, if priced; RunPod);
+  - confirmation that all pods are terminated and all checkpoints deleted;
+  - your branch name and commit list;
+  - the paths of the gitignored files the lead should copy out.
+</code></pre>
+<h3 id="118-resuming-the-stopped-test">118 · Resuming the stopped test<a class="headerlink" href="#118-resuming-the-stopped-test" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-21 19:12 UTC.</em> <strong>What it did.</strong> Verified the worktree&rsquo;s state first and kept every paid result. It finished an uncommitted driver change, chose DeepSeek&rsquo;s learning rate by the frozen rule (one extra calibration point was needed; the rule gave 2.9e-5), ran the four DeepSeek runs, sampled the open-ended strategy answers, had two blind graders score them, and wrote the report. <strong>What it produced.</strong> <code>planning/NS_BEHAVIOR_REPORT.md</code> and numbers under <code>runs/phase1c/ns_behavior/</code>. The answer was barely. Both models leaned slightly toward the real next step, but the intervals included no change, and DeepSeek&rsquo;s open answers never used the paper&rsquo;s key idea. Spend for the whole test: Tinker $10.09 (estimate), RunPod $0.55. See the <a href="../../briefings/08-ns-behavior.html">briefing</a>.</p>
+<pre><code class="language-text">You are resuming an experiment in James Barnes's appraisal study. A previous agent ran it and was stopped by accident at about 12:30 today. James has asked to resume. Pick up exactly where it stopped. Reuse everything already done; never redo paid work that already has results.
+
+## Where to work
+- All work happens inside the existing git worktree: &lt;repo&gt;/.claude/worktrees/agent-a67f12577e4ec9d2c (branch worktree-agent-a67f12577e4ec9d2c). The previous agent's commits, uncommitted code and gitignored data are all there.
+- Use absolute paths, or cd into that directory.
+- Never modify the main checkout at &lt;repo&gt; (outside .claude/worktrees). You may read it.
+
+## State at the stop (verify it yourself first)
+- Commits on the branch:
+  - 92a8ba9 — code: src/cpappraise/nsbehavior/, scripts/ns_behavior/, tests.
+  - bbcdff1 — planning/NS_BEHAVIOR_PREREG.md, plus frozen items: next-step 70, result 30, computation 30, unrelated 24, GSM8K 100. Read this note fully; it is binding: the frozen items, scoring rule and dose rule.
+- Uncommitted work:
+  - scripts/ns_behavior/tinker_nsb.py is modified. Run `git diff` and work out whether it is an unfinished fix; finish or revert it with care.
+  - runs/phase1c/ns_behavior/tinker_spend.json and tinker_sessions.json are updated.
+  - runs/runpod_ledger.jsonl is modified with the old pod's lines. The lead has already copied those into the main ledger, so restore this file to HEAD (`git checkout -- runs/runpod_ledger.jsonl`). Still write runs/phase1c/ns_behavior/runpod_ledger_1C-NSB.jsonl for completeness (scripts/main_exp/ledger_lines.py shows the pattern).
+- OLMo-2-13B: DONE. runs/phase1c/ns_behavior/olmo2-13b/ has progress 5/5: base, A s11/s22, ctrl s11/s22, scored on all items, the GSM8K slice and the pilot text panel. Its pod is terminated, at $0.55. Do not rerun OLMo unless something is provably missing.
+- DeepSeek-V3.1:
+  - Calibration is done (runs/phase1c/ns_behavior/calib/, logs/calib*.log): the dose was D = 0.155 at LR 3e-5, 0.187 at 4e-5, plus the 8e-5 point.
+  - The base model is scored (deepseek-v3.1/parts/base.*).
+  - Tinker spend so far is $3.06 estimated (stage main_base).
+  - NOT done: choosing the DeepSeek LR. Use the frozen rule: match OLMo's mean dose D over its two A runs, by the log-log interpolation in the note, running one extra LR if the target is outside the calibrated range.
+  - NOT done: the A and ctrl runs (seeds 11 and 22, one epoch), and scoring them on everything.
+- Strategy answers: the questions and rubric are written (data/interim/ns_behavior/strategy/questions.json, rubric.md, plus one smoke answer). Still to do:
+  - sample DeepSeek base, A and ctrl, both seeds, with the chat template, deterministic or low temperature with a fixed seed;
+  - blind grading: shuffle the answers, give them random labels, and grade against the frozen rubric plus overall soundness;
+  - write data/interim/ns_behavior/SIDE_BY_SIDE.md (gitignored).
+- Tinker currently lists 0 checkpoints. Nothing is running.
+
+## What to finish
+1. Run the DeepSeek LR choice, the four runs, and scoring on all frozen sets, the GSM8K slice and the pilot text panel (the note includes the panel).
+2. Do the strategy sampling and blind grading.
+3. Run the analysis exactly as frozen:
+   - the shift in log-odds of the true option vs the mean distractor, A minus control, paired by seed;
+   - secondary: the change in accuracy and a per-token-normalized variant;
+   - intervals: item-cluster bootstrap, B = 10,000, seed 20261018;
+   - report per model and per item set;
+   - frontier vs small: the ratio of the mean shifts, and the Spearman correlation of per-item shifts;
+   - the no-harm and unrelated-control checks;
+   - the pilot text panel at the matched one-epoch dose, compared with the pilot's unmatched results.
+4. Write planning/NS_BEHAVIOR_REPORT.md. Open with a plain-language section; James finds tables of bits and ranks unhelpful. Answer, in words:
+   - Did reading the paper change how each model approaches these problems?
+   - How did the frontier model differ from the small one?
+   - Does it recite the paper or apply its method?
+   - Did anything else get worse?
+
+   Put the numbers after that, as backing. Commit the numbers-only outputs under runs/phase1c/ns_behavior/.
+5. Run the full test suite before your final commit.
+
+## Budget (cumulative, including what is already spent)
+- Total $15: Tinker ≤ $12 (of which $3.06 is spent), RunPod ≤ $3 (of which $0.55 is spent). The note projected the core at $9.50 Tinker.
+- Project costs before each paid stage, and stop and report rather than exceed a cap.
+- If Tinker returns 402 (billing), stop and report.
+- No heavier dose: it was ruled out on budget.
+
+## Binding rules
+- **Tinker key.** Never print, log or commit it. Load your API key (from an env file; never printed) through the existing helpers (scripts/main_exp/tinker_common.service() or the ns_behavior Tinker driver), with TINKER_TELEMETRY=0.
+- **RunPod key.** Never print it.
+- **Tinker checkpoints.** Delete every one after its scoring and sampling, and verify the listing is empty at the end.
+- **Pods.** If your GPU account is shared, only touch pods you created. Only create or touch pods with the stage prefix 1C-NSB. Launch any long lane detached (nohup), because tool background tasks die at 2 h. Terminate every pod you create.
+- **Data (D52).** Public documents are fine for internal measurement; do not redistribute source texts.
+  - Committed outputs are numbers only (privacy.write_json).
+  - Item texts, model answers and paper texts stay in the gitignored data/interim/ns_behavior/.
+- **Refusals.** If a subagent or classifier refuses something, do not route around it; report it.
+- **Git.** Stage explicit paths only, never `git add -A`. End every commit message with: Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;
+
+## Final message
+Include:
+- the plain-language answer;
+- key numbers with intervals;
+- 2–3 short side-by-side excerpts;
+- the achieved doses for both models;
+- spend (the Tinker estimate, plus billed if priced; RunPod);
+- confirmation that all pods are terminated and all checkpoints deleted;
+- the branch name and full commit list;
+- the paths of gitignored files the lead should copy out.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#117-the-behavior-test">117 · The behavior test</a></li>
+<li><a href="#118-resuming-the-stopped-test">118 · Resuming the stopped test</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

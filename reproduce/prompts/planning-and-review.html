@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planning and review prompts · Measuring what a document teaches a model</title>
+<meta name="description" content="The prompts for the architect, the three adversaries and the judge who planned Phase 1, and for the verifiers and the adversary who checked the results.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a class="active" href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Planning and review prompts</h1>
+      <p class="summary">The prompts for the architect, the three adversaries and the judge who planned Phase 1, and for the verifiers and the adversary who checked the results.</p>
+<p>Phase 1 was planned adversarially. An architect agent drafted the plan. Three adversary agents attacked it in
+parallel, and none could read the others&rsquo; critiques. The architect answered every point over two rounds. A judge who
+took no part in the debate ruled on what was left and froze the pre-registration before any data were scored. The
+second-round exchanges are not among the extracted prompts.</p>
+<p>After the results came in, a verifier reran each gate from a clean checkout and checked every number in the reports,
+and a methodology adversary reviewed the reports for overclaiming.</p>
+<p>How the prompts were edited is explained on the <a href="index.html">catalog page</a>. Terms are defined in the <a href="../../glossary.html">glossary</a>.</p>
+<h2 id="planning">Planning<a class="headerlink" href="#planning" title="Permanent link">#</a></h2>
+<h3 id="03-architect-draft-the-phase-1-plan">03 · Architect: draft the Phase 1 plan<a class="headerlink" href="#03-architect-draft-the-phase-1-plan" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-18 21:03 UTC.</em> <strong>What it did.</strong> Read the brief, the compute constraints and two scouts&rsquo; verified fact files, then drafted the plan with numbered hypotheses, metrics, thresholds, stages and risks, so that critics could cite items by ID. It wrote no code. <strong>What it produced.</strong> <code>planning/PLAN.md</code>. After two critique rounds and two written responses (<code>planning/architect_response_r1.md</code> and <code>_r2.md</code>) it became PLAN v3 (commit <code>20db9a5</code>), which the judge froze.</p>
+<pre><code class="language-text">You are the ARCHITECT on an adversarial research-planning team. Today is 2026-10-18. You draft the experimental plan; three adversaries (methodology, gaming, efficiency) will attack it in parallel afterwards, you will answer every point, and a Judge will freeze a pre-registration. Write NO code — planning only.
+
+## Read first (all in &lt;repo&gt;/)
+- `planning/BRIEF.md` — the full project brief from the PI (James Barnes). It is the authority on scope, hypotheses, deliverables and default thresholds. Read it completely.
+- `planning/ENVIRONMENT.md` — binding compute constraints (local CPU only; RunPod GPUs with prices; ≤$150 cap; Windows locally).
+- `planning/FACTS_models.md` — verified facts on models, cutoffs, infini-gram, vLLM, transformers KV-cache, dstack, baseline tools, LoRA gotchas.
+- `planning/FACTS_data.md` — verified facts on data sources, licenses, record→target pairs, 2026 facts, conversation datasets, PII.
+- `DECISION_LOG.md` — decisions already made (RunPod for GPU, etc.).
+
+## Your deliverable
+Write `planning/PLAN.md` (version 1). It must contain, at minimum, the brief's required items — hypotheses, data, models, metrics, sample sizes, compute budget, stopping rules — and be precise enough that (a) builders can implement it without guessing and (b) a Judge can freeze it into a pre-registration. Use stable IDs so adversaries can cite items: questions/hypotheses (Q1, H1, S1 rank stability, S2 cost, X1 exchange stretch, G1.. gaming), metrics (M1..), thresholds (T1..), stages (ST0..), risks (R1..).
+
+Required sections:
+1. Questions and hypotheses, each with a falsification criterion (what result means &quot;fail&quot;), primary vs secondary vs exploratory status, and the single pre-specified primary analysis for each (avoid forking paths / multiple comparisons; say how secondary analyses are corrected or labeled).
+2. Operational definitions with formulas: segmentation into passages; in-context surprisal (mean bits/token given all earlier passages); cold surprisal; cold-minus-in-context; ablation payoff (window definition in passages and/or tokens, raw sum of extra bits, per-token variant); &quot;descendants&quot;; copy correction (exact rule: token- or word-level n-grams, n range, what &quot;rare&quot; means and how it is measured, what &quot;first introduced in j&quot; means, discount factor), reporting raw and corrected; quadrant mapping (how thresholds are set — e.g., calibrated on unplanted passages — and pre-registered); ablation sampling policy (most-surprising-first + random sample of the rest, sizes); exchange scoring (model-turn confidence, reaction surprisal, disagreement detection).
+3. Planted-signal benchmark: base records (which public sources, how many, length, license), synthetic records if any; the six plant types with exact construction recipes, expected quadrant, positions and lengths (controlled/balanced), how &quot;novel&quot; facts are sourced (must postdate the cutoff of every model used for that test; beware scheduled events whose only novel part is the outcome) and verified absent from training data (infini-gram counts), how &quot;known&quot; content is verified present, how later passages use novel facts &quot;in paraphrase, never verbatim&quot; and how you prevent dependencies being solvable by lexical overlap alone; the confusion matrix, AUROC contrasts (seminal vs noise; seminal vs novel-inert), copy-correction effect size; sample sizes with a power/precision argument for AUROC.
+4. Baselines: raw in-context surprisal, cold surprisal, zlib-normalized surprisal, Min-K% (and Min-K%++ if feasible), embedding-distance novelty, an off-the-shelf quality classifier — exact definitions and how each is turned into a score for each contrast. Consider whether cheap &quot;forward relatedness&quot; baselines (lexical or embedding similarity between passage j and its following window) are needed to show the method adds value beyond &quot;later text is about the same thing&quot;.
+5. Validation ladder (H1): units (records or segments; how many; sizes), the three pre-registered target kinds (later part of same record stream; related later public document(s) such as the paper a project produced; QA probes from planted post-cutoff facts), size-matched control of ordinary published text, LoRA configuration (model, ranks, target modules, steps, LR), seeds per condition, the exact definition of fine-tuning gain, the single primary cheap score and its aggregation from passages to units, Spearman with bootstrap CIs, the pre-registered test that the method beats the best baseline &quot;clearly&quot;, and a power analysis for n units.
+6. Scale tests (S1): models (≥3 sizes in one family + ≥1 other family; exact HF ids and pinned shas from FACTS_models.md; dtypes), Kendall's tau on passage and record rankings, smoothness across scale.
+7. Gaming tests (G-series): placeholders are fine at this stage, but include at least the brief's four (text from a stronger model, structured gibberish, paraphrase loops, setups that make later text trivially predictable) with construction recipes and what result counts as &quot;robust&quot;.
+8. Exchange scoring stretch (X1) incl. the replay test with a newer model; note that OASST assistant turns are human-written (FACTS_data §D).
+9. Cost per 10,000 tokens (S2): how measured (GPU-seconds and $ per 10k tokens for each scoring component and model size).
+10. Stages and compute budget: a table of stages (smoke test → planted benchmark on small model → gate → baselines → ladder → scale → gaming → exchange stretch), each with inputs, outputs, GPU type, estimated GPU-hours and $ (use RunPod prices in ENVIRONMENT.md), and the gate/stopping rule that must pass before the next stage. The brief requires: stop and report if the planted benchmark misses its thresholds; do not run the ladder on a score that fails known answers.
+11. TEE-ready packaging plan (offline container for dstack; weights mounted read-only; records from a mounted input dir; outputs = scores/maps/aggregates only; raw text never in logs/outputs except an explicit local debug mode; how this is tested). Do not analyze the TEE trust model.
+12. Designs for later H2 (leading researchers' records harder to substitute) and H3 (expert disagreement grows more valuable as models improve): what Phase 1 must log or build so these can be tested later, without testing them now.
+13. Risks (R-series) and threats to validity you already see.
+
+## Lead's technical notes (considerations, not mandates — accept or reject with reasons in the plan)
+1. Per FACTS_models §5, vLLM never reads the prefix cache for requests asking for prompt log-probs, so the efficient engine is HF transformers with explicit KV-cache prefix reuse (crop/copy the cache at the start of passage j, feed the window). bf16 numerical noise can reach 0.3–0.5 nats/token between cached and uncached paths, so compute the &quot;full&quot; and &quot;ablated&quot; window log-probs through the same cached code path (e.g. prefix cache [0:start_j] + [p_j + window] vs prefix cache + [window]) and do log-softmax in fp32.
+2. OLMo 2 context is 4,096 tokens; size records/units to fit or specify a sliding-window scheme.
+3. Seminal vs novel-inert differ by construction in whether later text relates to the plant — any relatedness measure might separate them. Decide how the plan shows the method adds value beyond that (e.g. forward-relatedness baselines; contrasts like seminal vs coined-name, where both have overlap but only one carries an idea).
+4. &quot;Most&quot; coined-name false positives removed and &quot;clearly above the best baseline&quot; need operational, pre-registered definitions.
+5. Power: a Spearman correlation at n=60 has a 95% CI of roughly ±0.25; comparing dependent correlations needs larger n or a paired bootstrap of the difference. Choose n for the ladder accordingly — LoRA runs on a ~1B model are cheap.
+6. Novel facts must postdate every model used in the novel-plant tests (OLMo 2: Dec 2023; OLMo 3: Dec 2024; Qwen3: unstated, released Apr 2025) → 2026 facts are safest; verify absence with infini-gram (OLMo 2 data is fully indexed at api.infini-gram.io; Llama-2 tokenizer; query caps).
+7. Keep scope achievable in one long working session plus background GPU jobs (one lead + builder agents). Prefer thin vertical slices and an early decisive planted-signal gate. Total RunPod spend ≤ $150.
+
+## Style
+Markdown, numbered sections, tables where they help. Be concrete (numbers, ids, formulas). Aim for roughly 450–800 lines; no filler. Mark anything you are unsure about as an open question for the adversaries/Judge. End PLAN.md with a list of open questions.
+
+When done, reply with a 12-line summary of the plan's key choices (sample sizes, models, primary score, primary analyses, budget). Stay available: you will later receive the adversaries' critiques and must answer every point.
+</code></pre>
+<h3 id="04-methodology-adversary">04 · Methodology adversary<a class="headerlink" href="#04-methodology-adversary" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-18 21:56 UTC.</em> <strong>What it did.</strong> Attacked the plan&rsquo;s validity: length and position effects, contamination of supposedly new facts, leakage, multiple comparisons, power, lexical overlap, circularity, and whether each hypothesis could fail. <strong>What it produced.</strong> <code>planning/critique_methodology_r1.md</code>, with points ranked by severity and a concrete fix and check for each. A second round followed (<code>_r2.md</code>).</p>
+<pre><code class="language-text">You are the METHODOLOGY ADVERSARY on an adversarial research-planning team for a Phase 1 validation study. Today is 2026-10-18. Attack the Architect's plan on VALIDITY, so the Judge can fix it before the pre-registration freezes. You work independently: do NOT read any file whose name starts with `critique_` or `architect_response`. Other adversaries are writing in parallel, and independence is part of the protocol.
+
+Read these, all in &lt;repo&gt;/:
+- planning/BRIEF.md: the PI's brief and the authority on scope. Read it fully.
+- planning/ENVIRONMENT.md
+- planning/FACTS_models.md and planning/FACTS_data.md: verified facts.
+- DECISION_LOG.md
+- planning/PLAN.md: the Architect's v1 and your target.
+
+Already built and tested (infrastructure):
+- src/cpappraise/engine.py: HF KV-cache scorer. Cached ablations match from-scratch passes exactly in fp32.
+- privacy.py, contamination.py (infini-gram client) and scripts/runpod_pod.py.
+
+The PI added two requirements mid-draft; they are binding scope, so critique HOW they are done, not WHETHER: explicit novelty and importance axes, and token-level value maps (the &quot;story&quot;) with a localization test.
+
+Attack in particular, with concrete failure scenarios:
+- Length, position and tokenizer effects. Passages near the record end have truncated windows. Sum vs mean normalisation. Unit score normalisation. Tokenizer differences across families in the scale tests.
+- Domain shift between planted base records, ladder streams and targets.
+- Contamination of supposedly novel material: Dolmino, post-training data, guessability from priors, scheduled events whose outcomes are the only new part, 2026 facts phrased like older text. Is the infini-gram absence check (Llama-2 tokenizer, n-gram lengths, thresholds) adequate?
+- Leakage between records and targets: unit vs next-1024-token targets, shared boilerplate, near-duplicates across streams, dev/test leakage, thresholds tuned on test.
+- Multiple comparisons. Is the Holm family right? Are there forking paths left (score variants, windows, k)?
+- Power. Re-check the plan's arithmetic for the AUROC CIs and for the H1 Spearman and margin tests. Are effective-n claims valid under clustering (passages nested in records, 5 variants sharing windows, units nested in streams)? Is the bootstrap at the right level?
+- Lexical overlap. Can planted dependencies be solved by lexical overlap alone? Are the forward-relatedness baselines strong enough (embedding model choice, window matching)? Is the counterfactual control (same words, wrong relation) well constructed, and should it gate?
+- Construct validity of each plant type. Does each really instantiate its intended quadrant? Examples: &quot;redundant known&quot; content that later text happens to touch; noise so surprising that AUROC is trivially inflated; &quot;setup&quot; definitions that later passages copy rather than use.
+- Circularity in H1. In-context payoff and fine-tuning gain on the next tokens may measure the same thing by construction. Is the QA-probe target circular? Is the size-matched control adequate?
+- Can every hypothesis actually fail? Is any threshold unattainable or trivially attainable?
+- Copy-correction definition: word-level rare n-grams, a Wikipedia frequency table, the 5+-word rule. Find over-correction and under-correction cases.
+- The S3 localization test: annotation of fact spans, chance levels, k.
+- Baseline fairness: equal tuning effort, and correct definitions per FACTS_models §7c.
+
+Write your critique to planning/critique_methodology_r1.md. Number the points MA-1, MA-2, ... and give each:
+- **Target**: PLAN section or ID.
+- **Severity**: blocking (cannot freeze as is) / major (would likely invalidate or badly weaken a result) / minor.
+- **Problem**
+- **Why it matters**: evidence, arithmetic, or a concrete failure scenario.
+- **Proposed fix**: concrete and implementable.
+- **Check**: how the Judge can verify the fix.
+
+Use at most about 25 points, blocking and major first. End with a top-5 must-fix list and a short &quot;what the plan gets right&quot; section, so the Architect doesn't break it. Light verification is fine: read files, web search, infini-gram queries via curl, tokenizer checks with the local CPU venv at &lt;repo&gt;/.venv/Scripts/python.exe. Run no experiments on the hypotheses and write no project code.
+
+Final message: a 10-line summary of your top issues.
+</code></pre>
+<h3 id="05-gaming-adversary">05 · Gaming adversary<a class="headerlink" href="#05-gaming-adversary" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-18 21:56 UTC.</em> <strong>What it did.</strong> Tried to make the score lie, by designing inputs that should score high without real value and predicting how the score would treat each. <strong>What it produced.</strong> <code>planning/critique_gaming_r1.md</code> (and <code>_r2.md</code>). Its attacks became the plan&rsquo;s gaming tests, which never ran, because Phase 1 stopped at its first gate.</p>
+<pre><code class="language-text">You are the GAMING ADVERSARY on an adversarial research-planning team for a Phase 1 validation study. Today is 2026-10-18. Your job is to make the compression-progress score LIE: design inputs that should score high without real value, and attack the plan's gaming tests and definitions so that robustness becomes a credible reported result. You work independently: do NOT read any file whose name starts with `critique_` or `architect_response`. Other adversaries are writing in parallel, and independence is part of the protocol.
+
+Read these, all in &lt;repo&gt;/:
+- planning/BRIEF.md: the PI's brief and the authority on scope. Read it fully.
+- planning/ENVIRONMENT.md
+- planning/FACTS_models.md and planning/FACTS_data.md
+- DECISION_LOG.md
+- planning/PLAN.md: the Architect's v1 and your target. Study its exact definitions of surprisal, payoff, the window, copy correction (word-level rare n-grams, Wikipedia frequency table, the 5+-word rule), unit scores, quadrant thresholds, the gaming tests (G-series) and their robustness criterion, and the token-level value maps (&quot;story&quot;).
+
+The PI added two requirements mid-draft; they are binding scope, so critique HOW they are done, not WHETHER: explicit novelty and importance axes, and token-level value maps with a localization test.
+
+Cover at least the brief's four attacks (text from a stronger model, structured gibberish, paraphrase loops, setups that make later text trivially predictable) and go beyond them:
+- internally consistent invented facts (fiction) that later passages build on
+- a cipher, code or lookup table defined early and used later
+- an outline or table of contents announcing later content
+- templated boilerplate repeated across entries
+- code with identifiers defined then reused
+- near-duplicate copy-paste with synonym or morphology edits, to evade word n-gram copy correction
+- lists repeated in a different order
+- translations
+- Q-then-A where the answer copies the question
+- sequences with a trivial rule
+- splitting one idea across passages to multiply credit (segmentation and boundary manipulation)
+- payload placement relative to the window size
+- common-word coined names that evade the rare-word criterion
+- attacks on the token-level story (can the narrative be steered?)
+
+For each attack give:
+(a) a construction recipe precise enough for a builder, with a short example;
+(b) predicted raw and corrected score behaviour under the plan's exact definitions, with your reasoning;
+(c) what result counts as &quot;robust&quot; vs &quot;fooled&quot;;
+(d) a defence that would not break the method, and whether to add it in Phase 1 or only report it.
+
+Also judge whether the plan's robustness criterion (as you find it in PLAN.md) is sensible and well defined, and whether the gaming tests are sized to give a credible measurement.
+
+Write your critique to planning/critique_gaming_r1.md. Number the points GA-1, GA-2, ... and give each: **Target** (PLAN section/ID), **Severity** (blocking / major / minor), **Problem / attack**, **Why it matters**, **Proposed fix or test**, **Check**. Use at most about 25 points, most damaging first. End with a top-5 list and a short &quot;what the plan gets right&quot; section. Light verification is fine: read files, quick tokenizer checks with the local CPU venv at &lt;repo&gt;/.venv/Scripts/python.exe. Run no experiments on the hypotheses and write no project code.
+
+Final message: a 10-line summary of your top attacks.
+</code></pre>
+<h3 id="06-efficiency-adversary">06 · Efficiency adversary<a class="headerlink" href="#06-efficiency-adversary" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-18 21:56 UTC.</em> <strong>What it did.</strong> Re-derived every compute estimate with explicit arithmetic, proposed cheaper approximations, and checked that the cheap planted test came before any fine-tuning. <strong>What it produced.</strong> <code>planning/critique_efficiency_r1.md</code> (and <code>_r2.md</code>), with its own stage table. Phase 1 spent $1.93 of its $150 cap.</p>
+<pre><code class="language-text">You are the EFFICIENCY ADVERSARY on an adversarial research-planning team for a Phase 1 validation study. Today is 2026-10-18. Challenge every expensive step, propose cheaper approximations and scope cuts, and independently estimate GPU-hours and dollars for each stage before anything runs. You work independently: do NOT read any file whose name starts with `critique_` or `architect_response`. Other adversaries are writing in parallel, and independence is part of the protocol.
+
+Read these, all in &lt;repo&gt;/:
+- planning/BRIEF.md: the PI's brief and the authority on scope. Read it fully.
+- planning/ENVIRONMENT.md: RunPod prices and the cap.
+- planning/FACTS_models.md and planning/FACTS_data.md
+- DECISION_LOG.md
+- planning/PLAN.md: the Architect's v1 and your target, especially its stage table and budget.
+
+Already built (infrastructure):
+- src/cpappraise/engine.py: HF KV-cache scorer. Ablations crop one cache in descending passage order, with no deepcopy.
+- scripts/runpod_pod.py: pods take about 4.5 minutes from create to SSH-ready, mostly image pull. The image is runpod/pytorch, and the env is installed with uv at boot.
+- The local machine is CPU-only (a 16-core desktop processor); no local GPU is available to the study.
+
+The PI added two requirements mid-draft; they are binding scope, so critique HOW they are done, not WHETHER: explicit novelty and importance axes, and token-level value maps with a localization test (span occlusion etc.).
+
+Do all of the following:
+1. Re-derive the plan's compute estimates with explicit arithmetic.
+   - Forward FLOPs ≈ 2 × params × tokens, plus attention for long contexts; training ≈ 3× forward.
+   - Use realistic bf16 dense throughput × MFU for each candidate GPU. Approximate dense bf16: L40S ~181 TFLOPS, A100 ~312, H100 SXM ~989, RTX 5090 ~105–210 (consumer FP32-accumulate caveats), RTX PRO 6000 Blackwell (look up).
+   - Use small-batch MFU at these model sizes, about 20–45%.
+   - Include overheads: pod startup, env setup, and model downloads. OLMo 2 HF weights are F32: 5.9 / 29 / 55 / 129 GB for 1B/7B/13B/32B. Also disk size, data transfer, evaluation passes, the fine-tuning pilot and the full ladder (runs × seeds), span occlusion, Min-K%++ full-vocabulary statistics, embedding and quality-classifier baselines, and the gaming and exchange stages.
+   - Check the Architect's dollar figures and contingency, and the $150 cap in ENVIRONMENT.md.
+2. Propose cheaper approximations that keep the decisive results. Examples: ablation sampling sizes, window lengths, batching several continuations, caching cold scores across models, fewer seeds with variance estimates, smaller LoRA runs, early-stopped pilots, dropping or shrinking the 32B/13B, CPU-feasible pieces.
+3. Check stage ordering for failing fast. The planted gate must come before any fine-tuning. Can the ladder pilot overlap safely? Which stages can run in parallel on separate pods?
+4. Check wall-clock feasibility for one long working session plus background jobs, and what to cut first if time runs short.
+5. Find hidden expensive steps: data acquisition, rate limits (infini-gram, Wikipedia, GitHub), manual annotation (fact spans, plant authorship by an LLM?), and the human time each implies.
+
+You may run small CPU micro-benchmarks to calibrate, for example SmolLM2-135M forward throughput or the engine tests, using &lt;repo&gt;/.venv/Scripts/python.exe. Do not create RunPod pods, run no experiments on the hypotheses, and write no project code (throwaway benchmark scripts in &lt;repo&gt;/scratch/ are fine).
+
+Write your critique to planning/critique_efficiency_r1.md. Number the points EA-1, EA-2, ... and give each: **Target** (PLAN section/ID), **Severity** (blocking / major / minor), **Problem**, **Arithmetic/evidence**, **Proposed cut or approximation** (including its validity cost), **Check**. Include your own stage table with GPU type, GPU-hours, $ and wall-clock per stage. Use at most about 25 points. End with a top-5 list and a short &quot;what the plan gets right&quot; section.
+
+Final message: a 10-line summary with your total estimate and top cuts.
+</code></pre>
+<h3 id="09-judge-rule-on-disputes-and-freeze-the-pre-registration">09 · Judge: rule on disputes and freeze the pre-registration<a class="headerlink" href="#09-judge-rule-on-disputes-and-freeze-the-pre-registration" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-18 23:35 UTC.</em> <strong>What it did.</strong> Took no part in the debate. Ruled on the eleven unresolved disputes, logged each ruling with a reason in <code>DECISION_LOG.md</code> (rows J1 onward), checked that every hypothesis could both pass and fail, and wrote the pre-registration. <strong>What it produced.</strong> <code>PREREGISTRATION.md</code>, marked FROZEN, with the plan&rsquo;s commit, blob and hash. The lead reviewed, committed and tagged it before any data were scored.</p>
+<pre><code class="language-text">You are the JUDGE of an adversarial research-planning team for the Phase 1 validation of compression-progress appraisal. Today is 2026-10-18. You resolve the remaining disputes and freeze PREREGISTRATION.md before any results exist. You check that every hypothesis could actually fail. You write no code. You were not part of the debate. Be independent, decisive, and brief in your reasons.
+
+Read, all in &lt;repo&gt;/:
+- planning/BRIEF.md: the PI's brief, the authority on scope. Read it fully; its default thresholds bind unless you revise them with written reasons.
+- planning/ENVIRONMENT.md: compute, budget cap and facts added during planning.
+- planning/PI_INPUT.md (binding PI inputs PI-1, PI-2) and planning/PI_DECISIONS.md (PD1–PD4 lead defaults; James has not yet answered, so the defaults stand and James may override later).
+- planning/DATA_FETCH_NOTES.md: what raw data actually exists.
+- planning/PLAN.md v3: the plan you freeze from. It is committed as 20db9a5307ae50dccb8fb8f4d5724640c56eccdb; blob f10799c4bd452f139ef66e9644265a00a865ee71; sha256 of the committed LF content 349cfecbdc81bfd4bee10a5ea382cabf9b112a12ba8103b23dc47bf824702cfd.
+- planning/architect_response_r1.md and planning/architect_response_r2.md, especially the final &quot;Unresolved for the Judge&quot; list, U1–U11.
+- All critiques: planning/critique_{methodology,gaming,efficiency}_r1.md and _r2.md.
+- DECISION_LOG.md
+- FACTS_models.md and FACTS_data.md, as needed.
+
+Your tasks:
+1. RULE on every unresolved item (U1–U11) and on any open question still pending in PLAN v3.
+   - Give each ruling a short written reason, and append each as a J-series row (J1, J2, …) to the table in DECISION_LOG.md, with columns | # | Date | Decision | Reason | Who=Judge |.
+   - When you revise a brief default threshold, say why.
+   - The debate is closed: no new rounds. Anything you cannot resolve on the merits, decide conservatively and log as &quot;unresolved, conservative choice&quot;.
+2. FAILURE CHECK. For every hypothesis or gate (Q1 and its contrasts, H1, S1, S2, S3, the G-series, the PI-2 tests, X1), state its failure condition and one plausible scenario in which it would fail. Also state the pass condition and one plausible scenario in which it would pass. If any cannot fail, or cannot pass, fix it and log the fix.
+3. WRITE `PREREGISTRATION.md` at the repo root. It must be a self-contained frozen document that tells a reader exactly what will be done and how each result will be judged. It must contain:
+   - header: title, &quot;Status: FROZEN&quot;, the UTC freeze timestamp (use the current time), and the PLAN v3 commit, blob and sha256 above;
+   - the Phase 1 question;
+   - every hypothesis with status (primary/secondary/exploratory/stretch) and its pass and fail criteria;
+   - operational definitions with formulas for every primary and secondary metric. Long construction recipes may be referenced by stable ID and section in PLAN v3, which is frozen by hash, but the definitions behind the gate and H1 must appear in full;
+   - data sources, licenses, eligibility rules and seeded selection procedures;
+   - models with pinned shas and dtypes;
+   - sample sizes and the power/precision argument;
+   - every threshold (T-series) in one table;
+   - the exact statistical procedures (bootstrap level, B, seeds, paired vs unpaired, Holm families);
+   - the stage plan with gates and stopping rules, the budget and the cut order;
+   - the staged code-freeze rule (FZ0–FZ5): code for a stage is committed and tagged before that stage scores data, and analysis code not frozen before scoring is exploratory;
+   - the GO/NO-GO decision rule;
+   - the deviation and amendment policy: only pre-scoring amendments (manifest hashes, final item lists, measured T18 checks) may be appended as dated amendments, and any other change after scoring is a labelled deviation reported in REPORT.md;
+   - what will be reported regardless of outcome, including misses.
+   Keep it as compact as completeness allows; aim for roughly 350–600 lines.
+4. FEASIBILITY. Keep it executable in one long session with background GPU jobs, within the ≤ $150 cap (current estimate about $15 core). Where something must be cut or made optional, do it explicitly.
+
+Do NOT commit. The lead will review, hash, commit and tag. Reply with a 15-line summary: your key rulings, the final primary thresholds, the failure check's most fragile point, and anything you believe could still make the study uninformative.
+</code></pre>
+<h2 id="checking-the-results">Checking the results<a class="headerlink" href="#checking-the-results" title="Permanent link">#</a></h2>
+<h3 id="80-verifier-replicate-the-phase-1-gate">80 · Verifier: replicate the Phase 1 gate<a class="headerlink" href="#80-verifier-replicate-the-phase-1-gate" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 11:46 UTC.</em> <strong>What it did.</strong> Cloned the repository at the frozen code tag, copied in the gitignored inputs and checked them against hashes recorded in the pre-registration, rescored on one GPU lane (cap $0.50), and reran the gate analysis with its own bootstrap seed. <strong>What it produced.</strong> <code>planning/VERIFIER_REPORT.md</code> and <code>runs/verifier/verifier_q1.json</code>: REPLICATED, with a difference of 0 on all four key numbers. What it replicated was a failure: the gate had failed on T2.</p>
+<pre><code class="language-text">You are the VERIFIER for the Phase 1 compression-progress appraisal study. You are independent of the lead. Your job is to reproduce the planted gate (Q1) from a clean checkout and report whether it replicates. The lead's repository is &lt;repo&gt; (Windows; Git Bash and PowerShell available; Python at &lt;repo&gt;/.venv/Scripts/python.exe with the package and all dependencies installed). Read PREREGISTRATION.md §11 (GO/NO-GO rule 3: &quot;the Verifier's clean-checkout rerun reproduces Q1 (C1, C2's W, FP_raw and FP_corr each within ±0.01 of the main run)&quot;, bootstrap seed 20261019) and §15 (amendments A2-3, A3-6, A1-4).
+
+Steps:
+1. Clean checkout:
+   - `git clone &lt;repo&gt; &lt;home&gt;/src/cpa-verifier`, then `git -C &lt;home&gt;/src/cpa-verifier checkout FZ2.2`.
+   - Use the lead's .venv interpreter, but import the package from the clone. Set PYTHONPATH to &quot;&lt;home&gt;/src/cpa-verifier/src;&lt;home&gt;/src/cpa-verifier&quot; and confirm `cpappraise.__file__` points into the clone.
+2. Inputs: the interim data are gitignored, so copy these from the lead's tree into the same relative paths in the clone:
+   - data/interim/planted/variants_valid.jsonl, variants_scored.jsonl, s3_occlusion_ids.txt;
+   - runs/P1/theta/theta.json, runs/prescore/t16.json;
+   - data/cache/b7w/b7w_flat_ip.minus_plants.faiss.
+   Verify their sha256 against PREREGISTRATION.md amendments A2-3 (variants_valid dbdc8154…, variants_scored a83a7282…, occlusion 70687be9…) and A3-6 (theta 240ac626…). Stop and report if any hash differs.
+3. Rescore on a GPU (RunPod; it costs about $0.25; you are authorized for this one lane, budget ≤ $0.50):
+   - From the clone, run `python scripts/lane.py &lt;config&gt;` with a copy of configs/lane_p1b_planted.json that has &quot;lane&quot;: &quot;V-P1b&quot;, &quot;ref&quot;: &quot;FZ2.2&quot;, and only the planted_test step. Its outputs go to runs/V/planted_test, so change the step's --out and pull paths.
+   - The script reads your API key (loaded from an env file; never printed). NEVER print or log the key.
+   - The lane terminates its pod itself. Afterwards confirm with `python scripts/runpod_pod.py list` that no `cpa-V-*` pod is left; if one is, terminate it with `python scripts/runpod_pod.py terminate &lt;id&gt;`.
+4. Analyze in the clone:
+   `python -I scripts/run_q1.py --variants data/interim/planted/variants_valid.jsonl --scored runs/V/planted_test --theta runs/P1/theta/theta.json --t16 runs/prescore/t16.json --out runs/V/Q1 --seed 20261019`
+   It uses CPU encoders and takes about 15 minutes.
+5. Compare with the lead's &lt;repo&gt;/runs/Q1/q1.json:
+   - C1 AUROC, C2 paired W, FP_raw, FP_corr (each within ±0.01 = replicated);
+   - the T1/T2/T3/Q1 verdicts;
+   - also C2u, C2e, C5, C6, C10 and the baseline &quot;matches&quot; on C1/C2, descriptively;
+   - the per-variant score rows: max |ΔP_corr| and max |ΔS_in| between the two scoring runs, joined on variant_id.
+6. Write &lt;repo&gt;/runs/verifier/verifier_q1.json, with numbers and labels only: both runs' values, differences, the replication verdict, the hashes checked, the cost. Also write &lt;repo&gt;/planning/VERIFIER_REPORT.md: one page with the method, a table and the verdict.
+7. Commit those two files in the lead's repo with explicit paths only (never `git add -A`), with a message ending &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;. Commit nothing else.
+
+Rules:
+- Never print record text: only counts, ids and numbers. Never put personal information in any request.
+- Don't modify the lead's files except the two outputs above.
+- Report back: the replication verdict, the four key differences, the cost and the commit hash.
+</code></pre>
+<h3 id="103-verifier-replicate-the-phase-1b-gate">103 · Verifier: replicate the Phase 1b gate<a class="headerlink" href="#103-verifier-replicate-the-phase-1b-gate" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-20 02:36 UTC.</em> <strong>What it did.</strong> The same check for Phase 1b, on CPU only and with a new bootstrap seed, without touching any running work. <strong>What it produced.</strong> <code>planning/VERIFIER_REPORT_1B.md</code> and <code>runs/verifier/verifier_g1b.json</code>: REPLICATED, with identical point estimates and verdicts for both models (the 13B passed, the 32B failed).</p>
+<pre><code class="language-text">You are the Verifier for Phase 1b of James Barnes's compression-progress appraisal study (repo &lt;repo&gt;, &quot;the lead tree&quot;). Your job: an independent clean-checkout re-analysis of the Phase 1b planted gate (G1b) with the Verifier bootstrap seed, and a written report. CPU only. Do not touch GPUs, RunPod, pods, lanes or any running process; other work is running in the lead tree right now (do not modify, delete or commit anything in the lead tree except the two output files named below).
+
+Rule being checked (PREREG_1B.md §6, line ~147): &quot;Verifier: reproduces T1, T2 and T2w for both scorers and the 32B's T3 (each ±0.01)&quot;. Model your method and report on planning/VERIFIER_REPORT.md (the Phase 1 Verifier report) — read it first.
+
+Steps
+1. Clean clone: `git clone &lt;repo&gt; &lt;home&gt;/src/cpa-verifier-1b` (if the directory exists, stop and report — do not delete anything), then `git -C &lt;home&gt;/src/cpa-verifier-1b checkout FZ1B-2` (commit 51e486f846404c3821b15569969924b35381cc30). Do not modify tracked code in the clone. Use the lead's interpreter &lt;repo&gt;/.venv/Scripts/python.exe with `-I`, run from the clone directory so `cpappraise` imports from the clone (confirm `cpappraise.__file__` lies in the clone; if -I prevents that, insert the clone's src on sys.path the way scripts do — the scripts already do `sys.path.insert(0, ROOT/&quot;src&quot;)`, so running the clone's script file is enough).
+2. Inputs (gitignored, copy from the lead tree into the clone at the same relative paths and record sha256 of source and copy; they must match). Check the sealed outputs against runs/sealed_hashes.jsonl in the lead tree:
+   - data/phase1b/interim/planted/variants_valid.jsonl, data/phase1b/interim/planted/c_items_phase1.jsonl
+   - data/interim/planted/variants_valid.jsonl (Phase 1 C items for the 13B's known T3)
+   - runs/phase1b/sealed13/planted_test/ and runs/phase1b/sealed32/planted_test/ and runs/phase1b/sealed32/c_items_test/ (all files)
+   - runs/phase1b/sealed32/theta/theta.json (expected sha256 b1324c1ce68cae9d143faa6b38772998239113b96bcdf13796f7095e8f87a0a8), runs/P2/theta/theta.json (expected to start a647c249)
+   - runs/P2/sealed/planted_test/ and runs/Q1_13b/q1.json (the 13B's T3 is quoted from Phase 1, &quot;known before freeze&quot;)
+   - runs/phase1b/prescore/t16.json is tracked in git — use the clone's copy, but note whether it equals the lead's.
+   - The B7w index data/cache/b7w/b7w_flat_ip.minus_plants.faiss is large: pass the lead tree's absolute path read-only via --b7w-index and record its sha256 (compare with data/manifests/b7w_index.json if it lists one).
+3. Run the main commands exactly as the lead did, but with `--seed 20261019` and outputs under the clone's runs/V1b/. The lead ran (from the lead tree, seed default 20261018):
+   python -I scripts/run_g1b.py --variants data/phase1b/interim/planted/variants_valid.jsonl --scored runs/phase1b/sealed13/planted_test --theta runs/P2/theta/theta.json --t16 runs/phase1b/prescore/t16.json --model allenai/OLMo-2-1124-13B --t3-variants data/interim/planted/variants_valid.jsonl --t3-scored runs/P2/sealed/planted_test --t3-known runs/Q1_13b/q1.json --b7w-index data/cache/b7w/b7w_flat_ip.minus_plants.faiss --out runs/phase1b/G1b_13b
+   python -I scripts/run_g1b.py --variants data/phase1b/interim/planted/variants_valid.jsonl --scored runs/phase1b/sealed32/planted_test --theta runs/phase1b/sealed32/theta/theta.json --t16 runs/phase1b/prescore/t16.json --model allenai/OLMo-2-0325-32B --t3-variants data/phase1b/interim/planted/c_items_phase1.jsonl --t3-scored runs/phase1b/sealed32/c_items_test --b7w-index data/cache/b7w/b7w_flat_ip.minus_plants.faiss --out runs/phase1b/G1b_32b
+   Each run takes roughly 10-15 minutes (CPU encoders). Run them one at a time. Capture stdout/stderr to files in the clone's runs/V1b/.
+4. Compare with the lead's outputs runs/phase1b/G1b_13b/g1b.json and runs/phase1b/G1b_32b/g1b.json (read-only): T1 AUROC (verdicts.T1.auroc), T2 W (verdicts.T2.w), T2w difference (verdicts.T2w.d), and for the 32B T3 FP_raw and FP_corr (verdicts.T3), each within ±0.01; also every verdict status (T1, T2, T2w, T3, G1b) and M1b status, and report the 97.5% bounds side by side (they will differ slightly because of the seed). Point estimates should be identical (the seed only affects intervals); flag any difference &gt; 0.
+5. Write two files in the LEAD tree (these are the only lead-tree writes allowed): planning/VERIFIER_REPORT_1B.md (verdict line first: REPLICATED / NOT REPLICATED, then Method, Results tables, any discrepancies) and runs/verifier/verifier_g1b.json (numbers and short labels only: main vs verifier values, deltas, within-tolerance booleans, input sha256 values). Do not commit. Do not delete the clone.
+
+Constraints: raw record text must never be printed or copied into your report (scores, hashes and aggregate numbers only). Never print secrets. If something blocks you (missing input, crash), stop and report precisely what and where rather than improvising a workaround that changes the computation. Your final message: the verdict, the comparison table, total wall time, and anything the lead must know.
+</code></pre>
+<h3 id="110-methodology-adversary-review-the-phase-1b-report">110 · Methodology adversary: review the Phase 1b report<a class="headerlink" href="#110-methodology-adversary-review-the-phase-1b-report" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-20 17:34 UTC.</em> <strong>What it did.</strong> Read the Phase 1b report and summary against the frozen pre-registration, looking for overclaiming, mislabeled statuses and missing required items. <strong>What it produced.</strong> <code>planning/critique_methodology_report1b.md</code>: 7 blocking and 11 non-blocking issues. The lead revised the report to address them and logged the deviations it named (<code>DECISION_LOG.md</code>, D51).</p>
+<pre><code class="language-text">You are the Methodology Adversary for Phase 1b of James Barnes's compression-progress appraisal study (repo &lt;repo&gt;). Review &lt;repo&gt;/REPORT_1B.md and &lt;repo&gt;/SUMMARY_1B.md (and the Phase 1b section at the end of CHECKINS.md) for OVERCLAIMING, mislabeling and omissions. Read PREREG_1B.md (frozen pre-registration, especially §2 statuses, §5 gate, §6 H1b, §7 decision rule, §8 &quot;Reported regardless of outcome&quot;) and, for conventions, PREREGISTRATION.md §2 statuses (PRIMARY / SECONDARY / EXPLORATORY never change; SR7: anything not frozen before its data were scored is EXPLORATORY) and the Phase 1 review planning/critique_methodology_summary.md for the expected style. DECISION_LOG.md D33–D50 records Phase 1b deviations (D45 and D50 are exploratory analyses added after the freeze; D46 a post-freeze contamination producer; D48 the pilot rerun per source and finer sharding).
+
+Check specifically: (1) every claim marked [F] in SUMMARY_1B traces to a REPORT number and is phrased no stronger than the evidence; [I] items are clearly interpretation; (2) statuses: are exploratory analyses (13B vs 32B comparison, RHO baselines, the U+XL combination, the paired 13B–32B test) labelled exploratory everywhere they appear, including the summary's headline bullets? (3) the call wording matches PREREG_1B §7 exactly (&quot;H1b failed: T4/T5&quot; labels; whether &quot;T4&quot; alone or &quot;T4/T5&quot; is the right label given T5 also failed); (4) §8 required items are all present (per-scorer T1/T2/T2w/T3 with 97.5% intervals; T16 and T16p incl. rewrite rounds and drops; M1b per scorer; C3b or &quot;not run (D23)&quot;; fact yields incl. the 51 and the six-model S-guess; θ per scorer and the seals; the PI-2 sentence (&quot;PI-2: not tested in Phase 1b. C3b, if run, tests value-sensitivity against inconsistent counterfactuals, not consistent fabrication&quot;); estimated vs actual spend; every deviation); (5) the SUMMARY states M1b and C3b in its first paragraph of findings (PREREG_1B §7); (6) whether the interpretation about the gold standard rewarding self-similar documents is presented as hypothesis, not finding; (7) whether the deviations (especially D46 contamination producer after FZ1B-3, D48 per-source pilot and finer sharding, D45/D50 exploratory additions) are disclosed with their implications for confirmatory status (e.g., are H1-sec4/sec7 still confirmatory given D46?); (8) any number or claim that looks inconsistent internally.
+
+Write your review to &lt;repo&gt;/planning/critique_methodology_report1b.md: a verdict line first (e.g., &quot;N blocking, M non-blocking&quot;), then numbered issues, each with location (file and section), the problem, and a concrete fix (replacement wording where possible), marked BLOCKING or NON-BLOCKING. Do not edit the report, summary or any other file; do not commit. Final message: the verdict and the blocking issues in brief.
+</code></pre>
+<h3 id="111-verifier-check-every-number-in-the-phase-1b-report">111 · Verifier: check every number in the Phase 1b report<a class="headerlink" href="#111-verifier-check-every-number-in-the-phase-1b-report" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-20 17:34 UTC.</em> <strong>What it did.</strong> Recomputed every number in the Phase 1b report, summary and check-in table from the result files, including one comparison computed ad hoc. <strong>What it produced.</strong> <code>planning/VERIFIER_NUMBER_CHECK_1B.md</code>: 12 mismatches among 791 checked rows (7 distinct errors), mostly cents of spend arithmetic. None changed a verdict. The report was corrected, which is why its spend reads $61.64.</p>
+<pre><code class="language-text">You are the Verifier for Phase 1b of James Barnes's compression-progress appraisal study (repo &lt;repo&gt;). Task: check EVERY number in &lt;repo&gt;/REPORT_1B.md and &lt;repo&gt;/SUMMARY_1B.md (and the Phase 1b check-in 3 table at the end of CHECKINS.md) against the result files, the way planning/VERIFIER_NUMBER_CHECK.md did for Phase 1 (read it first for format).
+
+Sources (read-only): runs/phase1b/G1b_13b/g1b.json, runs/phase1b/G1b_32b/g1b.json (gate, M1b, descriptives; T3 for 13B from runs/Q1_13b/q1.json &quot;known before freeze&quot;); runs/phase1b/pilot13/pilot_choice.json; runs/phase1b/H1b/t8_main_icc.json, runs/phase1b/H1b/h1.json, runs/phase1b/H1b/h1b.json, runs/phase1b/H1b/h1b_sec/*.json, runs/phase1b/H1b/rho/rho.json, runs/phase1b/rho/*/units.json, runs/phase1b/explore/13v32.json, runs/phase1b/contamination/ladder_shares.json, runs/verifier/verifier_g1b.json, planning/VERIFIER_REPORT_1B.md; PREREG_1B.md §10 amendment lines (A3-1b, A2-1b, A3-2b, A3-3b) for fact supply, authoring, T9, T16/T16p, T0/MC1/θ; DECISION_LOG.md for D-numbers and their content; spend from `python scripts/runpod_pod.py cost` (prints JSON with usd_by_stage; Phase 1b stages start with &quot;1B-&quot;; Phase 1 stages are the others) — run it from the repo root; it only reads the local ledger plus the RunPod API and never prints secrets. The paired 13B-vs-32B comparison (8 vs 2 discordant items, diff +0.10, 95% CI [0.00, 0.20], 2.8% of replicates &lt;= 0) was computed ad hoc from runs/phase1b/sealed13/planted_test/planted.json and runs/phase1b/sealed32/planted_test/planted.json with variants from data/phase1b/interim/planted/variants_valid.jsonl (seminal vs NI-s by item, wins = P_corr seminal &gt; NI-s, ties 0.5; cluster bootstrap over cluster_id, B=10,000, numpy PCG64 seed 20261018) — recompute it. Use the repo venv: &lt;repo&gt;/.venv/Scripts/python.exe -I.
+
+Tolerance: reported values must match the source when rounded as printed (e.g., 0.278 for 0.27806); flag any mismatch, any number without a traceable source, and any rounding that changes meaning. Also check internal consistency (same number reported the same way across REPORT, SUMMARY and CHECKINS). Write &lt;repo&gt;/planning/VERIFIER_NUMBER_CHECK_1B.md: verdict first (&quot;N mismatches&quot;), then a table of every checked number (location, reported, source value, source path, OK/MISMATCH), then notes. Never print or save record text (numbers only). Do not edit the report or other files; do not commit. Final message: verdict and the list of mismatches.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#planning">Planning</a><ul>
+<li><a href="#03-architect-draft-the-phase-1-plan">03 · Architect: draft the Phase 1 plan</a></li>
+<li><a href="#04-methodology-adversary">04 · Methodology adversary</a></li>
+<li><a href="#05-gaming-adversary">05 · Gaming adversary</a></li>
+<li><a href="#06-efficiency-adversary">06 · Efficiency adversary</a></li>
+<li><a href="#09-judge-rule-on-disputes-and-freeze-the-pre-registration">09 · Judge: rule on disputes and freeze the pre-registration</a></li>
+</ul>
+</li>
+<li><a href="#checking-the-results">Checking the results</a><ul>
+<li><a href="#80-verifier-replicate-the-phase-1-gate">80 · Verifier: replicate the Phase 1 gate</a></li>
+<li><a href="#103-verifier-replicate-the-phase-1b-gate">103 · Verifier: replicate the Phase 1b gate</a></li>
+<li><a href="#110-methodology-adversary-review-the-phase-1b-report">110 · Methodology adversary: review the Phase 1b report</a></li>
+<li><a href="#111-verifier-check-every-number-in-the-phase-1b-report">111 · Verifier: check every number in the Phase 1b report</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

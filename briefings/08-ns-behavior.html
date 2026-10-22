@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navier–Stokes behavior · Measuring what a document teaches a model</title>
+<meta name="description" content="One reading of the Navier–Stokes paper barely changed how either model approaches related problems; the frontier model&#x27;s open answers never used the paper&#x27;s key idea.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a class="active" href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Navier–Stokes behavior</h1>
+      <p class="summary">One reading of the Navier–Stokes paper barely changed how either model approaches related problems; the frontier model&#x27;s open answers never used the paper&#x27;s key idea.</p>
+<h2 id="the-question">The question<a class="headerlink" href="#the-question" title="Permanent link">#</a></h2>
+<p>Earlier tests measured what a model recalls or predicts after reading a document. This one asks about behavior.
+After one reading of OpenAI&rsquo;s &ldquo;Finite Time Blowup for Navier–Stokes&rdquo;, does a model approach related mathematical
+problems differently? And does the frontier model differ from the small one?</p>
+<h2 id="what-we-did">What we did<a class="headerlink" href="#what-we-did" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Models and dose.</strong> OLMo-2-13B (open) and DeepSeek-V3.1 (frontier) each read the paper once: one epoch of
+    <a href="../glossary.html">LoRA</a>. Learning rates were set so the <a href="../glossary.html">dose</a> matched: each model&rsquo;s loss on the
+    paper fell by 15%.</li>
+<li><strong>Control.</strong> The same training on an unrelated algebra paper, packed to the same length. Every effect is
+    paper-trained minus control-trained, averaged over two seeds.</li>
+<li><strong>Multiple-choice items</strong>, written by agents who never saw the paper, checked by a second agent and frozen before
+    scoring:<ul>
+<li>70 <em>next-step</em> items (primary): a decision point in one of four follow-up papers that apply the blow-up method
+    to other equations, with the real next step and three plausible alternatives;</li>
+<li>30 <em>result</em> items, 30 standard PDE computations, 24 unrelated combinatorics items, and 100 grade-school math
+    (GSM8K) solutions as a harm check.</li>
+<li>No option shares a run of six or more words with the paper, so recalling its wording cannot answer an item.</li>
+</ul>
+</li>
+<li><strong>Score, no judge.</strong> How much more probable the model finds the true option than the average alternative, as
+    log-odds in nats (+0.69 nats means twice as likely).</li>
+<li><strong>Strategy answers (DeepSeek only).</strong> Fourteen open questions of the form &ldquo;How would you try to prove finite-time
+    blow-up for &hellip;?&rdquo;, answered by the base model and each trained state: 70 answers in all. Two graders scored them
+    blind, against a rubric written beforehand from the paper&rsquo;s abstract and introduction.</li>
+</ul>
+<h2 id="what-we-found">What we found<a class="headerlink" href="#what-we-found" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Barely.</strong> Both models leaned toward the follow-ups&rsquo; real next steps, but not significantly. The real step became
+    about 1.9 times more likely relative to the alternatives in OLMo and 1.6 times in DeepSeek, and both intervals
+    include no change. That misses the pre-registered bar. Top choices almost never flipped: accuracy rose 1.4 points
+    in each model.</li>
+<li><strong>DeepSeek&rsquo;s strategy answers did not change.</strong> None of the 70 answers used the paper&rsquo;s key idea: small, fast
+    oscillations whose averaged push supplies the missing force on a collapsing vortex. Paper-trained and
+    control-trained answers do not differ on any rubric item, and soundness averaged 1.1 to 1.2 out of 3 in every
+    state.</li>
+<li><strong>Neither recital nor method.</strong> The lean is, if anything, larger where the true option does not share the paper&rsquo;s
+    vocabulary. OLMo&rsquo;s lean is not specific to the method: it moved more on the unrelated combinatorics items.</li>
+<li><strong>Small harm in DeepSeek.</strong> After the paper, DeepSeek predicted GSM8K solutions about 1% less well than after the
+    control. The interval lies wholly below zero and both seeds agree, so this meets the pre-registered harm rule.
+    Both readings improved GSM8K prediction over the base model; the paper improved it less. OLMo showed no detectable
+    harm.</li>
+<li><strong>Frontier vs small.</strong> The models moved by similar amounts and on largely the same items. DeepSeek&rsquo;s lean was
+    steadier: 59% of items moved toward the real step, against 44% in OLMo, and it was reliably positive on result
+    items (descriptive). But on plain text it gained less from the same dose: about half as much as OLMo on related
+    papers, and a third as much on recall. The pilot&rsquo;s large DeepSeek loss on the older blow-up literature disappears
+    at the matched dose, so it was an overdose artifact.</li>
+</ul>
+<h3 id="what-the-answers-look-like">What the answers look like<a class="headerlink" href="#what-the-answers-look-like" title="Permanent link">#</a></h3>
+<p>DeepSeek-V3.1, greedy decoding, same seed and prompt; math notation simplified.</p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>After reading the paper</th>
+<th>After reading the control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Forced 3D Navier–Stokes, the paper&rsquo;s own setting</td>
+<td>&ldquo;Design a smooth force f(x,t) compactly supported in space and time that induces a controlled instability.&rdquo;</td>
+<td>&ldquo;Design f to induce intense vortex stretching, e.g., via a carefully chosen external torque on a vortex ring&hellip;&rdquo;</td>
+</tr>
+<tr>
+<td>Forced 2D Euler, where blow-up is known to be impossible</td>
+<td>&ldquo;Specifically, design the force to create a hyperbolic saddle point in the velocity field, leading to exponential stretching of vorticity along the unstable manifold.&rdquo;</td>
+<td>&ldquo;The force should generate a flow that mimics a hyperbolic saddle point, leading to exponential stretching of fluid elements.&rdquo;</td>
+</tr>
+<tr>
+<td>Navier–Stokes with hyperdissipation (−Δ)<sup>3/2</sup>, also known to stay smooth</td>
+<td>&ldquo;The hyperdissipation of order 3/2 is weaker than the full Laplacian, potentially allowing nonlinearity to dominate.&rdquo;</td>
+<td>&ldquo;Given the hyperdissipation is weaker than the critical (−Δ)<sup>5/4</sup>, blow-up might be feasible.&rdquo;</td>
+</tr>
+</tbody>
+</table>
+<p>Neither column contains the paper&rsquo;s oscillation mechanism. On the two trap settings, both answers make the same
+mistake and earn a soundness grade of 0: neither recognizes that smooth solutions are known to persist.</p>
+<h2 id="what-it-means-for-appraisal">What it means for appraisal<a class="headerlink" href="#what-it-means-for-appraisal" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>One reading transfers knowledge, not method.</strong> Gains in recall and text prediction should not be reported as
+    &ldquo;the model now reasons like the paper&rdquo;.</li>
+<li><strong>Behavior needs its own tests,</strong> such as decision points from later work, tasks a buyer supplies, and open
+    answers graded blind. At this light dose they found almost nothing.</li>
+<li><strong>Compare models only at matched doses.</strong> The pilot&rsquo;s apparent damage to the frontier model came from overdosing.</li>
+<li><strong>Check side effects even at light doses,</strong> as the GSM8K dip shows.</li>
+</ul>
+<h2 id="key-numbers">Key numbers<a class="headerlink" href="#key-numbers" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>OLMo-2-13B</th>
+<th>DeepSeek-V3.1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dose: D, the fractional drop in the paper&rsquo;s own loss</td>
+<td>0.152 (LR 1e-4)</td>
+<td>0.150 (LR 2.9e-5)</td>
+</tr>
+<tr>
+<td>Next-step shift, primary (nats; 70 items)</td>
+<td>+0.64 [−0.19, +1.49]</td>
+<td>+0.47 [−0.04, +0.99]</td>
+</tr>
+<tr>
+<td>Same shift as an odds multiplier</td>
+<td>×1.9</td>
+<td>×1.6</td>
+</tr>
+<tr>
+<td>Next-step items moving toward the real step</td>
+<td>44%</td>
+<td>59%</td>
+</tr>
+<tr>
+<td>Next-step accuracy, change in points</td>
+<td>+1.4</td>
+<td>+1.4</td>
+</tr>
+<tr>
+<td>Result-item shift (nats; 30 items)</td>
+<td>+0.53 [−0.10, +1.39]</td>
+<td>+0.54 [+0.18, +0.95]</td>
+</tr>
+<tr>
+<td>Unrelated combinatorics shift (nats; 24 items)</td>
+<td>+1.04 [−0.32, +2.35]</td>
+<td>+0.17 [−0.70, +1.03]</td>
+</tr>
+<tr>
+<td>Strategy answers using the paper&rsquo;s key idea</td>
+<td>not tested</td>
+<td>0 of 70</td>
+</tr>
+<tr>
+<td>Strategy soundness, paper minus control (0–3 scale)</td>
+<td>not tested</td>
+<td>−0.09 [−0.30, +0.12]</td>
+</tr>
+<tr>
+<td>GSM8K solutions, paper minus control (bits per token)</td>
+<td>−0.0063 [−0.0144, +0.0014]: no harm detected</td>
+<td>−0.0120 [−0.0157, −0.0085]: harm, 0.9% of base</td>
+</tr>
+<tr>
+<td>Recall of the paper&rsquo;s facts (bits per probe)</td>
+<td>+1.14</td>
+<td>+0.42</td>
+</tr>
+<tr>
+<td>Related papers (mbit per byte)</td>
+<td>+31.6</td>
+<td>+15.2</td>
+</tr>
+<tr>
+<td>Older blow-up literature (mbit per byte)</td>
+<td>−8.8</td>
+<td>−0.4 (pilot, heavier dose: −27.5)</td>
+</tr>
+</tbody>
+</table>
+<p>Units: a shift is the log-odds of the true option against the mean alternative, paper-trained minus control-trained,
+in nats. Text rows are surprise removed, net of the control (see <a href="../glossary.html">bits</a>); negative means the text got
+harder to predict. Brackets are 95% <a href="../glossary.html">bootstrap intervals</a> over items. Per-item next-step shifts agree
+between the models: Spearman 0.46 [0.23, 0.66].</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>One paper, one control, two seeds, 70 primary items.</strong> Single items moved a lot in both directions.</li>
+<li><strong>The control is an algebra paper,</strong> not a fluid-dynamics paper. A same-field control would isolate the method
+    better.</li>
+<li><strong>Multiple-choice scores measure preference among given options.</strong> Only DeepSeek gave open answers.</li>
+<li><strong>One epoch of LoRA is a light dose.</strong> A heavier dose was not run, for budget reasons.</li>
+<li><strong>DeepSeek-V3.1 is a post-trained chat model</strong> scored on raw text, so only within-model shifts are compared.</li>
+<li><strong>Items, checks and grades come from AI agents</strong> working under frozen rules; the two graders were blind to which
+    state wrote each answer.</li>
+</ul>
+<h2 id="cost-and-date">Cost and date<a class="headerlink" href="#cost-and-date" title="Permanent link">#</a></h2>
+<p>Design frozen and run on 21 October 2026, before any trained model saw an item. Tinker (DeepSeek): $10.09, an
+estimate and an upper bound. RunPod (OLMo): $0.55. $10.64 in all, against a $15 cap.</p>
+<h2 id="sources-and-reproduction">Sources and reproduction<a class="headerlink" href="#sources-and-reproduction" title="Permanent link">#</a></h2>
+<ul>
+<li>Frozen design and report: <code>planning/NS_BEHAVIOR_PREREG.md</code>, <code>planning/NS_BEHAVIOR_REPORT.md</code>.</li>
+<li>Numbers: <code>runs/phase1c/ns_behavior/</code> (<code>results.json</code>, <code>effects.json</code>, <code>tables.md</code>, <code>strategy_grades.json</code>).</li>
+<li>Code: <code>src/cpappraise/nsbehavior/</code>, <code>scripts/ns_behavior/</code> (<code>prep.py</code>, <code>tinker_nsb.py</code>, <code>analyze.py</code>,
+    <code>strategy_grade.py</code>), <code>tests/test_ns_behavior.py</code>, item protocol <code>prompts/ns_behavior_item_protocol.md</code>.</li>
+<li>Items, model answers and the side-by-side file stay local in <code>data/interim/ns_behavior/</code> and are not committed.</li>
+<li>The earlier <a href="04-ns-pilot.html">Navier–Stokes pilot</a>. To rerun or extend: <a href="../reproduce/index.html">Reproduce</a>.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-question">The question</a></li>
+<li><a href="#what-we-did">What we did</a></li>
+<li><a href="#what-we-found">What we found</a><ul>
+<li><a href="#what-the-answers-look-like">What the answers look like</a></li>
+</ul>
+</li>
+<li><a href="#what-it-means-for-appraisal">What it means for appraisal</a></li>
+<li><a href="#key-numbers">Key numbers</a></li>
+<li><a href="#caveats">Caveats</a></li>
+<li><a href="#cost-and-date">Cost and date</a></li>
+<li><a href="#sources-and-reproduction">Sources and reproduction</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

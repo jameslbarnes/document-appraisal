@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1b builder prompts · Measuring what a document teaches a model</title>
+<meta name="description" content="The prompts for the two builders who set up the Phase 1b gate analysis and the 13B learning test.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a class="active" href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Phase 1b builder prompts</h1>
+      <p class="summary">The prompts for the two builders who set up the Phase 1b gate analysis and the 13B learning test.</p>
+<p>Phase 1b reran the planted test with larger scorers, OLMo-2-13B and OLMo-2-32B, on fresh items. Because the 13B
+passed, Phase 1b then tested whether the 13B&rsquo;s score predicts what the 13B actually learns from real research records
+(H1b). Two builder prompts set up the code. The writers, judges and adjudicators who made the fresh planted items are
+withheld; the <a href="index.html">catalog page</a> explains why, and how the prompts shown here were edited.</p>
+<h3 id="86-builder-the-phase-1b-gate-analysis-and-checks">86 · Builder: the Phase 1b gate analysis and checks<a class="headerlink" href="#86-builder-the-phase-1b-gate-analysis-and-checks" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-19 13:47 UTC.</em> <strong>What it did.</strong> Built three new pieces without changing frozen code: the gate analysis at 97.5% intervals, reusing the Phase 1 resampling (<code>scripts/run_g1b.py</code>); a paired relatedness parity check with rewrite and drop rounds (<code>src/cpappraise/plant/t16p.py</code>, <code>scripts/t16p.py</code>); and a flag that builds items without counterfactual variants. <strong>What it produced.</strong> Those modules, with tests. The gate then passed for the 13B, whose score ranked the planted finding above its same-story control in 95% of items, 19 points better than word overlap. It failed for the 32B. See the <a href="../../briefings/02-phase1b-gate-13b-32b.html">briefing</a>.</p>
+<pre><code class="language-text">You are a builder on the compression-progress appraisal study, working in &lt;repo&gt; (Windows; Python at .venv\Scripts\python.exe; the package `cpappraise` is installed editable). Read BUILD.md (rules: privacy, explicit-path commits, LF endings, tests before commit) and PREREG_1B.md (Phase 1b draft r2; §3 &quot;T16p&quot;, §5 analysis, §3 CF).
+
+Build three pieces of Phase 1b code. These are NEW modules or flags. Do NOT change the behaviour of frozen modules (analysis/q1.py, evaluate.py, baselines.py, plant/t16.py, jobs.py, ...); import from them.
+
+1. `scripts/run_g1b.py`: the G1b analysis per scorer, PREREG_1B §5.
+   - Reuse the frozen Q1 machinery: `analysis.q1.load_table`, the `ClusterResampler` from `evaluate`, `evaluate_contrast`, and the baseline-vs-method paired-difference construction that q1 uses for `baselines_vs_method`. The point is the SAME resamples as q1, with intervals computed at level 0.975 via `evaluate.percentile_ci(level=0.975)` / `one_sided_lb`.
+   - Inputs:
+     - the variants (valid items) and the planted rows (`planted.json`) of one scorer;
+     - the θ artifact; the T16 outcome JSON (for J4);
+     - baseline rows (computed like `scripts/run_q1.py` does: `baselines.planted_baseline_rows` with the pinned encoders. Reuse run_q1's functions, and `--reuse-baselines` to skip recomputation);
+     - optionally a second scored dir with Phase 1's C items for T3 (32B), or `--t3-known &lt;q1.json path&gt;` to quote a known T3 (13B: runs/Q1_13b/q1.json), labelled &quot;known before freeze&quot;.
+   - Output, numbers only, via privacy.write_json:
+     - T1 (AUROC seminal vs noise; ≥ 0.85 and LB97.5 ≥ 0.75);
+     - T2 (paired W seminal vs NI-s; ≥ 0.85 and LB97.5 ≥ 0.75; J4: if the T16 status is FAILED with a forward or held-out failure, also require the one-sided 97.5% LB of C2u &gt; 0.50);
+     - T2w (d = W(P_corr) − W(B9-lex) on C2 from the same paired resamples; LB97.5 &gt; 0);
+     - T3 (FP_raw ≥ 0.30 and FP_corr ≤ 0.5·FP_raw, with 97.5% intervals);
+     - G1b = T1 ∧ T2 ∧ T2w ∧ T3;
+     - M1b (d_b for B9-lex, B9-emb, B9-emb2, B10: PASS iff all d_b ≥ 0.05 with LB &gt; 0; FAIL iff some UB &lt; 0.05; else INCONCLUSIVE);
+     - C3b only if CF rows exist (W seminal vs CF ≥ 0.85, LB97.5 ≥ 0.75), plus the descriptive C2 unpaired, C2e, C2u and calibration lines.
+   - Tests in tests/test_run_g1b.py, using tests/test_q1.py's `make_world` synthetic generator: a passing world, a world failing T2w (a baseline as good as the method), CF absent, the known-T3 path, and a check that 97.5% intervals are wider than q1's 95% ones on the same data.
+
+2. `src/cpappraise/plant/t16p.py` plus a CLI subcommand script (`scripts/t16p.py`, so plant/cli.py stays unchanged): the paired relatedness parity check, PREREG_1B §3.
+   - Reuse `plant.t16`'s detector scoring (`score(...)` with `Detectors.pinned`, the same items as `cli.t16_items`).
+   - For each of B9-lex, B9-emb, B9-emb2, B10, compute the paired win rate W_d = mean over test items of [score_d(seminal) &gt; score_d(NI-s)], ties 0.5. Pass iff every W_d ∈ [0.35, 0.65].
+   - It is a resumable state machine like t16's:
+     - fail with &lt; 2 completed rounds → request rewrites for the top 25% (ceil) of items by mean standardized within-item gap (per detector: the gap divided by its SD over items, ddof 1; mean over the four detectors; signed toward the failure);
+     - write `rewrite_round&lt;r&gt;.json` as {item_id: &quot;closer&quot;|&quot;further&quot;}, in the format `authoring build-d4-rewrite --directions` reads (&quot;closer&quot; when the item's gap favours seminal);
+     - after 2 rounds → drop items in descending gap order while failing and more than 60 test items remain → PASS / PASS_AFTER_DROPS / FAILED;
+     - write the state, a drops file and a numbers-only outcome JSON.
+   - Tests with synthetic detector scores.
+
+3. A `--no-cf` flag for `plant build`.
+   - Add `BuildInputs.no_cf` (default False), so CF variants are not generated or written. Keep every other check. If the f′-dependent checks must be skipped, document which.
+   - Wire the CLI flag into plant/cli.py's build parser. This is a small additive change: the existing behaviour is unchanged when the flag is absent, and it mirrors the existing `--no-fab`.
+   - Add a test in tests/test_plant_build.py next to `test_no_fab_builds_f_items_without_fab_inserts`.
+
+Rules:
+- Run the FULL test suite before committing.
+- Commit with explicit paths only (never `git add -A`), with a message ending &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;.
+- No network calls except the pinned HF encoders already cached locally, and no pods.
+- Never print record text. Never put personal information in requests.
+
+Report: the commit hash(es), test counts, the CLI usage of each piece, and any ambiguity in PREREG_1B you had to resolve. Write those ambiguities to planning/BUILD_QUESTIONS.md under &quot;P1B:&quot;.
+</code></pre>
+<h3 id="102-builder-the-13b-learning-test-h1b">102 · Builder: the 13B learning test (H1b)<a class="headerlink" href="#102-builder-the-13b-learning-test-h1b" title="Permanent link">#</a></h3>
+<p><em>Launched 2026-10-20 00:15 UTC.</em> <strong>What it did.</strong> Prepared the 13B fine-tuning config, with gradient checkpointing so the 13B fits on one GPU; the H1b runner around the frozen analysis, with a loud check for a known column-name trap; and the lane configs. It launched nothing, so the lead could tag the code before any data were scored. <strong>What it produced.</strong> <code>configs/finetune_pilot_13b.json</code>, <code>scripts/run_h1b.py</code> and <code>configs/lane_h1b_*.json</code>. The test then failed its bar: the score&rsquo;s correlation with the 13B&rsquo;s measured learning gain was 0.278 (0.154 to 0.388) against 0.50, and a simple in-context baseline did better (0.442). See the <a href="../../briefings/03-h1b-cheap-score-vs-learning.html">briefing</a>.</p>
+<pre><code class="language-text">You are a builder on the compression-progress appraisal study, working in &lt;repo&gt; (Windows; Python at .venv\Scripts\python.exe; package `cpappraise` installed editable). Read BUILD.md (rules: privacy, explicit-path commits, LF, tests before commit) and these sections:
+- PREREG_1B.md §6 (H1b) and §5–§8;
+- PREREGISTRATION.md §3.8 (gold standard, gains), §7 (T4, T5, T8), §2 (H1-SEC members);
+- planning/LEAD_NOTES.md (post-gate checklist; note the U_M5s/U_m5s gotcha).
+
+Status: Phase 1b's gate passed for OLMo-2-1124-13B. H1b now runs ONCE on the 13B: U from the 13B on Phase 1's 288 ladder units, gold standard = LoRA on the 13B itself (Phase 1 recipe), plus H1b-sec, U_13B vs Phase 1's 1B LoRA gain. Fine-tuning code was never frozen in Phase 1 (SR2 stopped before FZ3), so finetune.py may be extended now. Everything must be committed so the lead can tag FZ1B-3 before the pilot scores any study data. Do NOT run any GPU job or pod; build and test locally only.
+
+Deliverables:
+1. `configs/finetune_pilot_13b.json`, per PREREG_1B §6: model olmo2-13b, lrs [3e-5, 1e-4, 3e-4], checkpoints [8, 24], seeds [11, 22, 33], rule CR3-B, strict_rule M5s, the Phase 1 controls file, n_controls 3, audit_share 0.02. Make sure `finetune.py pilot/main/controls/kindc` works with model olmo2-13b on one 80 GB GPU:
+   - bf16 base, fp32 LoRA under autocast, about 2,100-token training sequences;
+   - add opt-in gradient checkpointing via a config flag (default off; on for the 13B config) if the activation memory needs it, and test that it does not change results on a tiny model beyond numerical tolerance;
+   - keep the Phase 1 1B behaviour unchanged when the flag is absent.
+2. `scripts/run_h1b.py`: assembles the H1 spec and runs the frozen `analysis/h1.py` (read its `ladder_table` and `main` to see the spec keys). Inputs:
+   - the ladder units;
+   - the 13B finetune main outputs and controls;
+   - unit_scores from `jobs units` on the ladder with the 13B (`--extra-rules M5s`), and the native-paragraph run (`data/interim/units/ladder_native.jsonl`, `--passages-field native_passages`);
+   - unit baselines via `baselines.unit_scores` with the pinned CPU encoders and the units job's arrays (follow run_q1.py's pattern for loading encoders);
+   - contamination shares if a producer exists in the repo (search `contamination.py`); otherwise H1-sec4/sec7 report &quot;not testable (no contamination shares)&quot; — say which;
+   - kind C (finetune kindc outputs + U on the kind-C units) for H1-sec2.
+
+   The U_m5s trap: `jobs units` writes &quot;U_M5s&quot;, while h1.keyed reads &quot;U_m5s&quot; and otherwise falls back to &quot;U&quot;. The runner must write explicit {unit_id, U_m5s} rows from U_M5s and FAIL loudly if they are missing.
+
+   Also produce H1b-sec: ρ_ws(U_13B, the 1B LoRA NG_A^m), with T4's thresholds, reported but never deciding.
+
+   Output numbers-only JSON through privacy.write_json. Write tests on synthetic inputs, reusing tests/test_h1*.py fixtures if present.
+3. Lane configs (do not launch them):
+   - `configs/lane_h1b_pilot13.json`: finetune pilot on data/interim/units/pilot.jsonl plus data/interim/planted/kindC_check.jsonl with configs/finetune_pilot_13b.json, on an 80 GB GPU.
+   - `configs/lane_h1b_score13.json`: jobs units on ladder.jsonl (`--extra-rules M5s`), on ladder_native.jsonl (`--passages-field native_passages`), and on data/interim/planted/kindC.jsonl, all with olmo2-13b.
+   - `configs/lane_h1b_main13_shard{0..3}.json`: `finetune main --shard i/4` using runs/phase1b/pilot13/pilot_choice.json; shard 0 also runs controls.
+   - `configs/lane_h1b_kindc13.json`.
+   - `configs/lane_h1b_1b.json`: the Phase 1 1B gold standard for H1b-sec (pilot with configs/finetune_pilot.json, then main and controls on the ladder, model olmo2-1b, L40S).
+
+   Each lane uses &quot;ref&quot;: &quot;FZ1B-3&quot; and writes under runs/phase1b/…. Size disks for fp32 weights on HF: the 13B is 55 GB.
+
+Rules:
+- Run the FULL test suite before committing.
+- Commit with explicit paths only (never `git add -A`), with a message ending &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply email&gt;&quot;.
+- Never print record text, and never put personal information in requests.
+
+Report: commit hash(es), test counts, how memory fits for the 13B (with or without checkpointing), whether contamination shares exist, the exact commands, and any PREREG ambiguity, written to planning/BUILD_QUESTIONS.md under &quot;H1B:&quot;.
+</code></pre>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#86-builder-the-phase-1b-gate-analysis-and-checks">86 · Builder: the Phase 1b gate analysis and checks</a></li>
+<li><a href="#102-builder-the-13b-learning-test-h1b">102 · Builder: the 13B learning test (H1b)</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

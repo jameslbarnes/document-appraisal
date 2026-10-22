@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Related work · Measuring what a document teaches a model</title>
+<meta name="description" content="Valuing data with short training runs, appraising data privately and scoring ideas against later papers all have precedents, but the study&#x27;s positioning memo found none for a per-document, author-facing appraisal with an increment over others&#x27; related work, or for measuring by training how much a paper helps predict the later papers that cite it.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a class="active" href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Related work</h1>
+      <p class="summary">Valuing data with short training runs, appraising data privately and scoring ideas against later papers all have precedents, but the study&#x27;s positioning memo found none for a per-document, author-facing appraisal with an increment over others&#x27; related work, or for measuring by training how much a paper helps predict the later papers that cite it.</p>
+<p>This page summarizes the study&rsquo;s positioning memo, <code>planning/RELATED_WORK.md</code>. The memo was written on 2026-10-20, before the 30-paper <a href="briefings/07-main-experiment.html">main experiment</a>. Every work it lists was checked that day on arXiv, publisher or proceedings pages, and nothing was cited from memory. Citations here follow the memo, which has the full references and links. Terms are defined in the <a href="glossary.html">glossary</a>.</p>
+<h2 id="the-claims-and-the-verdicts">The claims and the verdicts<a class="headerlink" href="#the-claims-and-the-verdicts" title="Permanent link">#</a></h2>
+<p>The memo positions five of the study&rsquo;s claims. For each, it asks what prior work already covers and what is left.</p>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Closest prior work</th>
+<th>What looks new</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1. A cheap model-internal score does not predict what training teaches</td>
+<td>Partly anticipated</td>
+<td>DATE-LM (Jiao et al. 2025); RHO-LOSS (Mindermann et al. 2022); IFD and in-context probing as precedents for the winning baseline</td>
+<td>A pre-registered compression-progress test behind a planted-finding gate</td>
+</tr>
+<tr>
+<td>C2. Direct measurement with controls, comparables and an increment</td>
+<td>Partly anticipated</td>
+<td>Llama 3 annealing and OLMo 2 microanneals; Try Before You Buy (Azcoitia &amp; Laoutaris 2022); counterfactual memorization (Zhang et al. 2023)</td>
+<td>The per-document, author-facing protocol and the increment over others&rsquo; related documents</td>
+</tr>
+<tr>
+<td>C3. An open model&rsquo;s appraisal carries over to a frontier model</td>
+<td>Partly anticipated</td>
+<td>Khaddaj, Engstrom &amp; Madry 2025; DataDecide 2025; Tirumala et al. 2022 (why heavy doses diverge)</td>
+<td>One document&rsquo;s appraisal agreeing across model families, from 13B to frontier scale (one document so far)</td>
+</tr>
+<tr>
+<td>C4. Truth-anchored anticipation</td>
+<td>No close precedent found (pilot only)</td>
+<td>CausalCite (Kumar et al. 2024); IdeaForecastBench (Li et al. 2026); Lazaridou et al. 2021; Li &amp; Flanigan 2024</td>
+<td>The gain on citing papers after training on a paper, with altered-claim controls</td>
+</tr>
+<tr>
+<td>C5. Private appraisal in a TEE with bounded reports</td>
+<td>Partly anticipated</td>
+<td>NDAI Agreements (Stephenson et al. 2025); Sterling (Hynes et al. 2018); Xu, Hannun &amp; van der Maaten 2022; TIP (Yang et al. 2025); Aggarwal et al. 2020</td>
+<td>A measured fine-tune inside the TEE with capacity-bounded reports, plus an analysis of extraction through the panel</td>
+</tr>
+</tbody>
+</table>
+<p>The evidence behind each claim, as the memo states it:</p>
+<ul>
+<li><strong>C1</strong> (<a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b</a>). At OLMo-2-13B the compression-progress score ranks a planted finding above a same-story control (W 0.95, +0.19 over word overlap). But on 288 natural research segments it predicts the measured LoRA gain at only ρ 0.278, against a bar of 0.50. An in-context-gain baseline did better (0.442), and a RHO-style excess loss showed no signal (−0.057).</li>
+<li><strong>C2</strong> (<a href="designs.html">design memos</a>). A short fine-tune on the document, read on a panel against matched controls and comparables, plus an increment: related documents by others alone, against those documents plus this one.</li>
+<li><strong>C3</strong> (<a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a>). At one epoch the two models agree in all five tiers, with ρ = 0.98 across 13 related documents. At four epochs DeepSeek&rsquo;s training loss on the paper fell to 0.18 bits per token, and its related-work gain became a loss.</li>
+<li><strong>C4</strong> (<a href="briefings/05-anticipation-pilot.html">anticipation pilot</a>). At one epoch the A-specific gain T* is +0.0037 bits per token, positive in 28 of 36 items. The pre-registered three-epoch gate failed, and true and altered papers were not separated at the light dose.</li>
+<li><strong>C5.</strong> A red team read a hidden panel item through tier averages, and the differential-privacy modes swamp the signal at small sizes.</li>
+</ul>
+<h2 id="the-closest-prior-work">The closest prior work<a class="headerlink" href="#the-closest-prior-work" title="Permanent link">#</a></h2>
+<p>The memo flags five overlaps as high severity: cite them prominently and narrow the claims around them.</p>
+<h3 id="ndai-agreements">NDAI Agreements<a class="headerlink" href="#ndai-agreements" title="Permanent link">#</a></h3>
+<p>Stephenson, Miller, Sun, Annem &amp; Parikh (2025), <a href="https://arxiv.org/abs/2502.07924">arXiv 2502.07924</a>. It models an inventor–investor bargain under the threat of hold-up. TEEs combined with AI agents can remove the &ldquo;disclosure-appropriation paradox&rdquo; first identified by Arrow (1962) and Nelson (1959): agents decide disclosure and payment inside tamper-proof programs, making the TEE an &ldquo;ironclad NDA&rdquo; for information goods. This is the thesis that motivates C5, with the same Arrow framing. In NDAI, AI agents judge value. The study builds on it by asking what the measurement inside the enclave should be: it replaces an agent&rsquo;s <em>judgment</em> of value with <em>measured</em> learning, and analyzes what a bounded report can leak.</p>
+<h3 id="try-before-you-buy">Try Before You Buy<a class="headerlink" href="#try-before-you-buy" title="Permanent link">#</a></h3>
+<p>Azcoitia &amp; Laoutaris (2022), DE &lsquo;22 workshop, <a href="https://arxiv.org/abs/2012.08874">arXiv 2012.08874</a>. A data marketplace reports to each buyer how the buyer&rsquo;s own algorithm performs when trained on each candidate dataset, alone or on top of the data the buyer already owns. It runs in a sandbox where the buyer cannot see or copy the raw data. This anticipates measured rather than proxy value, marginal value over a background, and the sandbox. It differs in using tabular datasets and accuracy, with no controls for the effect of training itself, no comparables, no language-model documents, and no analysis of what the released numbers leak. The memo&rsquo;s advice: do not claim the idea of measured, sandboxed appraisal.</p>
+<h3 id="data-appraisal-without-data-sharing">Data Appraisal Without Data Sharing<a class="headerlink" href="#data-appraisal-without-data-sharing" title="Permanent link">#</a></h3>
+<p>Xu, Hannun &amp; van der Maaten (2022), AISTATS 2022, <a href="https://arxiv.org/abs/2012.06430">arXiv 2012.06430</a>. A model owner appraises a data owner&rsquo;s data before purchase, with neither side revealing its data, using secure multiparty computation and a first-order influence score. It names the same &ldquo;Catch-22&rdquo; and uses the same word, <em>appraisal</em>: the closest academic precedent for C5. The difference is the measurement. Theirs is a cheap first-order score, the kind C1 finds insufficient. The study runs a short fine-tune with controls inside a TEE.</p>
+<h3 id="sterling">Sterling<a class="headerlink" href="#sterling" title="Permanent link">#</a></h3>
+<p>Hynes, Dao, Yan, Cheng &amp; Song (2018), PVLDB 11(12), <a href="https://www.vldb.org/pvldb/vol11/p2086-hynes.pdf">paper</a>. A decentralized marketplace where smart contracts and TEEs run analytics and machine learning over private data, under constraints the providers set, such as price and differential privacy. It already states the buyer&rsquo;s problem, including noise or fake data from an adversarial provider. It appraises training data inside the TEE with an influence approximation, because retraining is too expensive. The memo calls it the earliest TEE-based appraisal of training data found. It is a demonstration paper, with no validation of the appraisal, no leakage analysis and no language-model documents.</p>
+<h3 id="short-training-runs-are-lab-practice">Short training runs are lab practice<a class="headerlink" href="#short-training-runs-are-lab-practice" title="Permanent link">#</a></h3>
+<p>Llama 3 (Grattafiori et al. 2024, §3.1.3) judges small domain datasets by annealing a half-trained model on them. OLMo 2 (Team OLMo et al. 2025, §4.4.2) tests candidate math sources with short &ldquo;microanneals&rdquo;. So &ldquo;direct measurement&rdquo; alone is not new. What is new is the per-document, author-facing design and the unique-contribution increment.</p>
+<h2 id="the-wider-literature">The wider literature<a class="headerlink" href="#the-wider-literature" title="Permanent link">#</a></h2>
+<h3 id="data-valuation-and-attribution">Data valuation and attribution<a class="headerlink" href="#data-valuation-and-attribution" title="Permanent link">#</a></h3>
+<p>The standard cheap route estimates the effect of training on data without doing the training: influence functions (Koh &amp; Liang 2017), TracIn (Pruthi et al. 2020), TRAK (Park et al. 2023), and at language-model scale LoGra (Choe et al. 2025, &ldquo;What is Your Data Worth to GPT?&rdquo;). Datamodels (Ilyas et al. 2022) use retraining on subsets as ground truth. DATE-LM (Jiao et al. 2025) benchmarks attribution methods and finds that no method dominates. Data Shapley (Ghorbani &amp; Zou 2019) averages a datum&rsquo;s marginal contribution over many subsets. The study&rsquo;s increment is one marginal contribution, to one meaningful group: related documents by other authors. Agarwal, Dahleh &amp; Sarkar (2019) down-weight a seller&rsquo;s revenue share by how similar its data are to others&rsquo;; the increment measures uniqueness by training instead. VOLM (Sharma, Joachims &amp; Dean 2026), posted 2026-09-01, measures what a writer adds beyond what a language model could write from the task alone, without any training. It is the closest framing of &ldquo;a document&rsquo;s own contribution&rdquo;, and the memo asks that any &ldquo;value over replacement&rdquo; wording credit it.</p>
+<h3 id="rho-loss-and-reference-model-scores">RHO-LOSS and reference-model scores<a class="headerlink" href="#rho-loss-and-reference-model-scores" title="Permanent link">#</a></h3>
+<p>RHO-LOSS (Mindermann et al. 2022) scores each training point by its training loss minus the loss of a model trained on held-out data, and skips points that are noisy or already learned. It is the closest operational cousin of the study&rsquo;s compression-progress score; Rho-1 (Lin et al. 2024) belongs to the same family. In the study, a RHO-style excess loss (13B loss minus 32B loss) had no signal for the 13B&rsquo;s measured gain. IFD (Li et al. 2024) and in-context probing (Jiao et al. 2025) are context-versus-no-context contrasts like the in-context baseline that beat the study&rsquo;s score. The memo therefore presents that baseline as one with precedent, not as a new method.</p>
+<h3 id="knowledge-acquisition-by-fine-tuning">Knowledge acquisition by fine-tuning<a class="headerlink" href="#knowledge-acquisition-by-fine-tuning" title="Permanent link">#</a></h3>
+<p>New facts are learned slowly and, once learned, raise hallucination (Gekhman et al. 2024). Facts need varied restatements to become extractable (Allen-Zhu &amp; Li 2023), fine-tuning is a weak way to inject new facts (Ovadia et al. 2024), and synthetic rephrasing helps (EntiGraph, Yang et al. 2024). LoRA learns less and forgets less than full fine-tuning (Biderman et al. 2024), which is why the study treats LoRA as a floor. Knowledge-editing work measures efficacy, generalization and locality (ROME, Meng et al. 2022; ripple effects, Cohen et al. 2024), the analog of the study&rsquo;s recall, transfer and side tiers. Fine-tuning can also implant false facts that behave like real knowledge (Slocum et al. 2025). So &ldquo;the model learned it&rdquo; is no evidence of truth, which motivates anchoring value in later work.</p>
+<h3 id="transfer-across-scale">Transfer across scale<a class="headerlink" href="#transfer-across-scale" title="Permanent link">#</a></h3>
+<p>Data effects carry from small to large models within one family trained from scratch (Khaddaj, Engstrom &amp; Madry 2025). Rankings at a single small size predict the best pretraining corpus at 1B in about 80% of pairwise comparisons (DataDecide, Magnusson et al. 2025). Larger models memorize faster (Tirumala et al. 2022), which predicts the Navier–Stokes pilot&rsquo;s divergence at heavy doses and supports calibrating the dose per model.</p>
+<h3 id="anticipation-and-time-split-evaluation">Anticipation and time-split evaluation<a class="headerlink" href="#anticipation-and-time-split-evaluation" title="Permanent link">#</a></h3>
+<p>Models predict text from after their training period worse, and increasingly so over time (Lazaridou et al. 2021). Li &amp; Flanigan (2024) model future text from a temporal history of documents. CausalCite (Kumar et al. 2024) estimates a paper&rsquo;s causal effect on its follow-ups by matching in embedding space. IdeaForecastBench (Li et al. 2026) scores generated ideas against later papers with LLM judges, and argues that judging novelty when an idea is generated does not show that it anticipates later work. Zhang &amp; Evans (2025) find that perplexity predicts how science is received. The memo draws the line there: perplexity is surprise to a frozen model, not what a model learns or whether later work uses it. None of these works trains on a paper and measures the gain on its citing papers with altered-claim controls.</p>
+<h3 id="llm-novelty-judges-and-sycophancy">LLM novelty judges and sycophancy<a class="headerlink" href="#llm-novelty-judges-and-sycophancy" title="Permanent link">#</a></h3>
+<p>This literature backs the study&rsquo;s framing: don&rsquo;t ask a model whether an idea is new; measure what it learns from it.</p>
+<ul>
+<li>Blind expert reviewers gave LLM-generated ideas higher novelty ratings than experts&rsquo; ideas (Si, Yang &amp; Hashimoto 2024). After execution, the LLM ideas&rsquo; scores fell more than the human ideas&rsquo;, on every metric (Si, Hashimoto &amp; Yang 2025).</li>
+<li>Off-the-shelf o3 was &ldquo;no better than random guessing&rdquo; at predicting which of two research ideas performs better; a fine-tuned GPT-4.1 with retrieval reached 77% (Wen et al. 2025).</li>
+<li>LLM agents &ldquo;systematically overestimate novelty&rdquo; (Mostafa, Nguyen &amp; Ahmadi 2026).</li>
+<li>Feedback turns more positive when the user says they wrote the text (Sharma et al. 2023). LLM reviewers favor well-known authors under single-blind review (Ye et al. 2024). Larger models repeat back a user&rsquo;s preferred answer (Perez et al. 2022).</li>
+<li>Counterpoints the memo asks to state honestly: a structured retrieval pipeline reached 75.3% agreement with reviewers&rsquo; novelty conclusions (Afzal et al. 2025); GPT-4&rsquo;s feedback overlaps reviewers&rsquo; about as much as two reviewers overlap (Liang et al. 2023); and models are partly calibrated about what they know (Kadavath et al. 2022).</li>
+</ul>
+<p>The memo&rsquo;s suggested wording is &ldquo;an off-the-shelf model&rsquo;s opinion is not a measurement&rdquo;, not &ldquo;LLM judgments are useless&rdquo;. A planned demonstration that rates the same documents framed as &ldquo;my idea&rdquo; or &ldquo;a paper I found&rdquo; would replicate known effects; pairing those ratings with measured contribution is the new part.</p>
+<h3 id="leakage-and-privacy">Leakage and privacy<a class="headerlink" href="#leakage-and-privacy" title="Permanent link">#</a></h3>
+<p>Exposing an aggregate log-loss score lets an adversary infer the membership of any number of points in one query (Aggarwal et al. 2020). Test labels can be inferred from a leaderboard&rsquo;s log-loss (Whitehill 2017). Answering many aggregate queries too accurately reveals the data (Dinur &amp; Nissim 2003). These are the precedents for the study&rsquo;s panel-extraction threat. Differential privacy degrades the fidelity of valuation rankings (Fu, Wang &amp; Chandrasekaran 2026), consistent with the study&rsquo;s privacy modes swamping the signal at small sizes. In industry, Vana&rsquo;s whitepaper (not peer reviewed) describes scoring contributed data inside TEEs, so the study should not imply that it is first in practice.</p>
+<h2 id="what-looks-new-and-what-does-not">What looks new, and what does not<a class="headerlink" href="#what-looks-new-and-what-does-not" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Looks new.</strong> Truth-anchored anticipation (C4): train on a paper, measure the gain on the later papers that cite it, and use altered-claim copies as the truth control. The memo found no close precedent. At the time, the evidence was a pilot whose pre-registered gate failed.</li>
+<li><strong>New parts of otherwise anticipated claims.</strong> The per-document, author-facing protocol (matched controls, comparables, tiered panels); the increment over related work by others; a measured fine-tune inside a TEE with capacity-bounded reports and an extraction analysis; a pre-registered compression-progress test behind a planted gate; and agreement of one document&rsquo;s appraisal across model families, from open to frontier.</li>
+<li><strong>Anticipated, so not claimed.</strong> Measuring data value by training (lab practice); measured, sandboxed appraisal (Try Before You Buy); TEEs as an answer to Arrow&rsquo;s paradox (NDAI Agreements); private pre-purchase appraisal (Xu et al.; Sterling); &ldquo;cheap scores disappoint and simple baselines compete&rdquo; (the DATE-LM line); and small-to-large consistency of data effects (Khaddaj et al.). The memo says never to write &ldquo;first to measure data value by training&rdquo;.</li>
+</ul>
+<h2 id="since-the-memo">Since the memo<a class="headerlink" href="#since-the-memo" title="Permanent link">#</a></h2>
+<p>The memo&rsquo;s C3 rested on one document and its C4 on one pilot. The <a href="briefings/07-main-experiment.html">main experiment</a>, reported on 2026-10-21, ran 30 papers on OLMo-2-13B and DeepSeek-V3.1 at a calibrated one-epoch dose. Per-document rankings agreed across the two models on recall, follow-ups and field transfer (ρ 0.68–0.75), though not on belief probes. The anticipation gain replicated in both models, and truth on later papers&rsquo; text was still not established. The verdicts above predate these results. The memo also advises re-running its red-flag searches before publication, because two of the closest works, VOLM and IdeaForecastBench, appeared on 2026-09-01.</p>
+<h2 id="source">Source<a class="headerlink" href="#source" title="Permanent link">#</a></h2>
+<p><code>planning/RELATED_WORK.md</code> holds the full citations and links for the 30 closest papers, a must-cite list, the red flags with suggested handling, and notes on how each citation was verified.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#the-claims-and-the-verdicts">The claims and the verdicts</a></li>
+<li><a href="#the-closest-prior-work">The closest prior work</a><ul>
+<li><a href="#ndai-agreements">NDAI Agreements</a></li>
+<li><a href="#try-before-you-buy">Try Before You Buy</a></li>
+<li><a href="#data-appraisal-without-data-sharing">Data Appraisal Without Data Sharing</a></li>
+<li><a href="#sterling">Sterling</a></li>
+<li><a href="#short-training-runs-are-lab-practice">Short training runs are lab practice</a></li>
+</ul>
+</li>
+<li><a href="#the-wider-literature">The wider literature</a><ul>
+<li><a href="#data-valuation-and-attribution">Data valuation and attribution</a></li>
+<li><a href="#rho-loss-and-reference-model-scores">RHO-LOSS and reference-model scores</a></li>
+<li><a href="#knowledge-acquisition-by-fine-tuning">Knowledge acquisition by fine-tuning</a></li>
+<li><a href="#transfer-across-scale">Transfer across scale</a></li>
+<li><a href="#anticipation-and-time-split-evaluation">Anticipation and time-split evaluation</a></li>
+<li><a href="#llm-novelty-judges-and-sycophancy">LLM novelty judges and sycophancy</a></li>
+<li><a href="#leakage-and-privacy">Leakage and privacy</a></li>
+</ul>
+</li>
+<li><a href="#what-looks-new-and-what-does-not">What looks new, and what does not</a></li>
+<li><a href="#since-the-memo">Since the memo</a></li>
+<li><a href="#source">Source</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

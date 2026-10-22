@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent prompts · Measuring what a document teaches a model</title>
+<meta name="description" content="A catalog of the agent roles that planned, built, checked and ran the study, with the prompts each one received, lightly edited for privacy.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a class="active" href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Agent prompts</h1>
+      <p class="summary">A catalog of the agent roles that planned, built, checked and ran the study, with the prompts each one received, lightly edited for privacy.</p>
+<p>Every experiment on this site was run by AI agents: Claude Code sessions working under James Barnes&rsquo;s direction. A
+lead session wrote a prompt for each subagent, launched it and read its short report. These pages publish those
+prompts, so you can see exactly what each agent was told and reuse the roles. Numbers such as 03 or 115 give each
+prompt&rsquo;s position in the order the prompts were sent. Terms are defined in the <a href="../../glossary.html">glossary</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">How the prompts were edited</p>
+<p>Prompts are shown as sent, with these edits:</p>
+<ul>
+<li>Absolute paths are replaced: <code>&lt;repo&gt;</code> is the repository root and <code>&lt;home&gt;</code> a home directory.</li>
+<li>Where a prompt said where an API key is kept, it now reads &ldquo;your API key (loaded from an env file; never
+  printed)&rdquo;.</li>
+<li>Sentences about other work running on the study machine, about other local sessions, and machine-specific
+  process advice are removed. &ldquo;The RunPod account is shared with other sessions&rdquo; becomes &ldquo;if your GPU account is
+  shared, only touch pods you created&rdquo;.</li>
+<li>Context and steps about a private document are replaced with neutral wording or removed. The one removed step
+  is marked in place.</li>
+<li>The email address in the commit trailer is shortened.</li>
+</ul>
+<p>Goals, design, rules, deliverables, budget caps and stop rules are unchanged.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Withheld: prompts for planted test items</p>
+<p>Phases 1 and 1b tested the cheap score on planted items: short passages that agents wrote in the voices of real
+authors and inserted into copies of those authors&rsquo; public research records. The prompts for those writers, judges
+and adjudicators (37 to 78, and 88 to 101) are not published. Neither are the templates they followed
+(<code>prompts/write_*.md</code>, <code>prompts/rewrite_d4.md</code>, <code>prompts/judge.md</code> and <code>prompts/adjudicate.md</code>). This keeps text
+written in real authors&rsquo; voices from circulating. The design is described in the
+<a href="../../briefings/01-phase1-cheap-score.html">Phase 1 briefing</a>.</p>
+</div>
+<h2 id="roles">Roles<a class="headerlink" href="#roles" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Prompts</th>
+<th>What the agent did</th>
+<th>Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scouts</td>
+<td>01, 02</td>
+<td>Gathered verified, sourced facts on models and tooling, and on data sources and licenses, for the planners</td>
+<td>not shown</td>
+</tr>
+<tr>
+<td>Architect</td>
+<td>03</td>
+<td>Drafted the Phase 1 plan, with stable IDs for critics to cite</td>
+<td><a href="planning-and-review.html">Planning and review</a></td>
+</tr>
+<tr>
+<td>Adversaries</td>
+<td>04, 05, 06, 110</td>
+<td>Attacked the plan&rsquo;s validity, its resistance to gaming and its cost; later, a report&rsquo;s claims</td>
+<td><a href="planning-and-review.html">Planning and review</a></td>
+</tr>
+<tr>
+<td>Judge</td>
+<td>09</td>
+<td>Ruled on the open disputes and froze the pre-registration</td>
+<td><a href="planning-and-review.html">Planning and review</a></td>
+</tr>
+<tr>
+<td>Verifiers</td>
+<td>80, 103, 111</td>
+<td>Reproduced gate results from a clean checkout, and checked every number in a report</td>
+<td><a href="planning-and-review.html">Planning and review</a></td>
+</tr>
+<tr>
+<td>Phase 1 builders</td>
+<td>07, 08, 10–18</td>
+<td>Fetched raw data and built the Phase 1 code in parallel, one owner per module</td>
+<td><a href="phase1-builders.html">Phase 1 builders</a></td>
+</tr>
+<tr>
+<td>Extractors</td>
+<td>19, 21–28, 30–36, 81–85, 87</td>
+<td>Turned batches of 40 arXiv abstracts into quote-checked fact records</td>
+<td><a href="extraction.html">Extraction</a></td>
+</tr>
+<tr>
+<td>Phase 1b builders</td>
+<td>86, 102</td>
+<td>Built the Phase 1b gate analysis and the 13B learning test</td>
+<td><a href="phase1b.html">Phase 1b builders</a></td>
+</tr>
+<tr>
+<td>Workstream agents</td>
+<td>104–108</td>
+<td>Five parallel studies after Phase 1b: a highlighter test, the direct-appraisal protocol, the anticipation design, process-data valuation, and transfer to frontier models</td>
+<td><a href="pilots.html">Phase 1c pilots</a></td>
+</tr>
+<tr>
+<td>Pilot runners</td>
+<td>113, 114</td>
+<td>Ran the anticipation pilot and the Navier–Stokes pilot</td>
+<td><a href="pilots.html">Phase 1c pilots</a></td>
+</tr>
+<tr>
+<td>Main-experiment agent</td>
+<td>115</td>
+<td>Ran the 30-paper experiment on both models, end to end</td>
+<td><a href="main-experiment.html">Main experiment</a></td>
+</tr>
+<tr>
+<td>Behavior-test agents</td>
+<td>117, 118</td>
+<td>Ran the Navier–Stokes behavior test; the second agent resumed it after an accidental stop</td>
+<td><a href="ns-behavior.html">Behavior test</a></td>
+</tr>
+<tr>
+<td>Literature agent</td>
+<td>116</td>
+<td>Positioned the study&rsquo;s claims against prior work</td>
+<td><a href="related-work.html">Related work</a></td>
+</tr>
+<tr>
+<td>Probe and item writers</td>
+<td>frozen protocols</td>
+<td>Wrote recall and belief probes, multiple-choice items and fact records</td>
+<td><a href="protocols.html">Protocols</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="not-shown">Not shown<a class="headerlink" href="#not-shown" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>01 and 02, scouts.</strong> Their outputs are <code>planning/FACTS_models.md</code> and <code>planning/FACTS_data.md</code>.</li>
+<li><strong>20 and 79, routine builders.</strong> A full arXiv harvest, the pre-registered fallback when the fact supply ran short
+  (<code>scripts/fetch/fetch_arxiv_2026_full.py</code>), and native-paragraph versions of the learning-test units
+  (<code>src/cpappraise/data/native.py</code>).</li>
+<li><strong>29, a lister.</strong> A list of well-known numeric facts for a fabrication test that did not run.</li>
+<li><strong>22 to 28, 30 to 36, 81 to 85 and 87, extraction batches.</strong> The same form as the example on the
+  <a href="extraction.html">extraction page</a>.</li>
+<li><strong>37 to 78 and 88 to 101.</strong> Withheld, as explained above.</li>
+<li><strong>109 and 112.</strong> Not published: private material.</li>
+</ul>
+<h2 id="how-the-prompts-were-written">How the prompts were written<a class="headerlink" href="#how-the-prompts-were-written" title="Permanent link">#</a></h2>
+<p>The prompts share a few habits that are worth copying.</p>
+<ul>
+<li><strong>Role first.</strong> Each opens with the agent&rsquo;s role, the date and where the task sits in the study.</li>
+<li><strong>A read-first list.</strong> The exact files to read, with the authority named: the frozen pre-registration, <code>BUILD.md</code>
+  or the latest report.</li>
+<li><strong>Ownership.</strong> The files the agent may write. Everything else is read-only.</li>
+<li><strong>Exact deliverables.</strong> Paths, formats, and the rule that anything committed holds numbers only.</li>
+<li><strong>Hard rules.</strong> Privacy; downloads treated as untrusted and read with <code>python -I</code>; commits of explicit paths only,
+  never <code>git add -A</code>; LF line endings; tests before committing.</li>
+<li><strong>A budget.</strong> A hard cap, a cost estimate before each paid stage, and &ldquo;stop and report&rdquo; rather than exceed it.</li>
+<li><strong>Ambiguity.</strong> Write the question down instead of improvising an analytic choice.</li>
+<li><strong>Refusals.</strong> If a writer or a safety classifier declines, do not reword, reroute or reassign the task; report it.</li>
+<li><strong>Short replies.</strong> A reply of 12 lines or fewer, or one status line, so the lead&rsquo;s context stays small.</li>
+</ul>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#roles">Roles</a></li>
+<li><a href="#not-shown">Not shown</a></li>
+<li><a href="#how-the-prompts-were-written">How the prompts were written</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

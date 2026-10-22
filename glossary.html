@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary · Measuring what a document teaches a model</title>
+<meta name="description" content="Plain definitions of the terms used across the site.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="index.html">Home</a></li><li><a href="method.html">The method</a></li><li><a href="lessons.html">What we learned</a></li><li><a href="agenda.html">Research agenda</a></li><li><a href="faq.html">FAQ</a></li><li><a href="designs.html">Design memos</a></li><li><a href="related-work.html">Related work</a></li><li><a href="ethics.html">Data, consent and limits</a></li><li><a class="active" href="glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="briefings/index.html">All briefings</a></li><li><a href="briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="reproduce/index.html">Reproduce and extend</a></li><li><a href="reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="reproduce/prompts/index.html">Catalog</a></li><li><a href="reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Glossary</h1>
+      <p class="summary">Plain definitions of the terms used across the site.</p>
+<p><strong>Appraisal.</strong> Measuring what a document contributes to a model: what the model learns from it, how much that helps
+later work, and how much of it is the document&rsquo;s own.</p>
+<p><strong>Bits.</strong> A measure of surprise. A model that gives a token probability <em>p</em> is surprised by −log2(<em>p</em>) bits. If a
+document lowers an answer&rsquo;s surprise by 1 bit, the model became twice as likely to produce that answer. Text effects
+are reported in bits per token, or per byte to compare across models with different tokenizers; mbit is a
+thousandth of a bit.</p>
+<p><strong>Background.</strong> Three earlier related papers by other authors, read before the document in the unique-contribution
+test.</p>
+<p><strong>Bootstrap interval.</strong> A 95% range for an estimate, from resampling papers or items 10,000 times (seed 20261018).
+&ldquo;Cluster&rdquo; means whole papers or items are resampled together.</p>
+<p><strong>Comparables.</strong> Similar documents appraised the same way, used to place a document&rsquo;s result in context, for example
+as a percentile.</p>
+<p><strong>Compression progress (U, P_corr).</strong> The cheap, training-free score tested in Phases 1 and 1b. Remove a passage
+from the document and measure how much harder the model finds the text that follows (the next 768 tokens). Copied text
+is corrected for. A passage that later text depends on scores high. The score detected planted findings at 13B, but it
+predicted what a model learns only weakly. Do not confuse it with the <strong>in-context gain</strong> baseline (B3), which
+measures how much easier a passage becomes once the model has seen the earlier text. B3 did better.</p>
+<p><strong>Control.</strong> An unrelated document of the same length, read by the comparison model. It isolates generic training
+effects.</p>
+<p><strong>Copy mask (CR3-B).</strong> A rule that zeroes out text shared verbatim with the training document, so copying earns no
+credit.</p>
+<p><strong>Dose.</strong> How hard a model fits the document: the fractional drop in its loss on the document&rsquo;s own text after
+training. It was matched across models by calibrating the learning rate.</p>
+<p><strong>Epoch.</strong> One pass over the training text. &ldquo;One reading&rdquo; means one epoch.</p>
+<p><strong>Follow-up (anticipation).</strong> A later paper that cites the document. If training on the document makes the follow-up
+more predictable, beyond generic effects, the document taught something the field went on to use. <strong>T*</strong> is the
+specificity statistic: the gain on its own follow-up minus the gains on other papers&rsquo; follow-ups.</p>
+<p><strong>Frontier model / open model.</strong> Here, DeepSeek-V3.1 (671B parameters, mixture-of-experts, via Tinker) and
+OLMo-2-13B (fully open, on rented GPUs).</p>
+<p><strong>Increment.</strong> (Background + document) minus (background + control): what a document adds beyond related work.</p>
+<p><strong>LoRA.</strong> Low-rank adaptation: training a small add-on to a model&rsquo;s weights instead of all of them. It is cheap, and
+it probably understates effects compared with full fine-tuning.</p>
+<p><strong>Panel.</strong> The fixed set of tests a trained model is scored on: recall probes, follow-up texts, field transfer, side
+texts and behavior items.</p>
+<p><strong>Pre-registration (light).</strong> A short note, frozen before scoring, that fixes the items, the scoring rule and the
+decision rules.</p>
+<p><strong>Recall probe.</strong> A fill-in-the-blank question written from the document, scored by the bits of the exact answer.</p>
+<p><strong>RunPod / Tinker.</strong> RunPod rents GPUs; the open-model jobs ran there. Tinker is Thinking Machines&rsquo; hosted training
+API; the frontier-model jobs ran there.</p>
+<p><strong>Seed.</strong> A random-number setting. Two seeds per arm show whether results hold up across runs.</p>
+<p><strong>TEE / enclave.</strong> A trusted execution environment: hardware that runs code so that neither party can see the
+other&rsquo;s inputs, and that can attest to what ran.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+
+  </aside>
+</div>
+</body>
+</html>

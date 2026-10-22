@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reproduce and extend · Measuring what a document teaches a model</title>
+<meta name="description" content="Where the code lives, what you need to rerun it, what each experiment cost, and how AI agents planned, built, checked and ran the work.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../index.html">Home</a></li><li><a href="../method.html">The method</a></li><li><a href="../lessons.html">What we learned</a></li><li><a href="../agenda.html">Research agenda</a></li><li><a href="../faq.html">FAQ</a></li><li><a href="../designs.html">Design memos</a></li><li><a href="../related-work.html">Related work</a></li><li><a href="../ethics.html">Data, consent and limits</a></li><li><a href="../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../briefings/index.html">All briefings</a></li><li><a href="../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a class="active" href="../reproduce/index.html">Reproduce and extend</a></li><li><a href="../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../reproduce/prompts/index.html">Catalog</a></li><li><a href="../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a href="../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Reproduce and extend</h1>
+      <p class="summary">Where the code lives, what you need to rerun it, what each experiment cost, and how AI agents planned, built, checked and ran the work.</p>
+<h2 id="who-this-is-for">Who this is for<a class="headerlink" href="#who-this-is-for" title="Permanent link">#</a></h2>
+<p>This section is for readers who want to rerun the study or build on it. Everything here points to the code that
+actually ran the experiments, in the <code>cp-appraisal</code> repository. All paths below are relative to the root of that
+repository.</p>
+<div class="admonition note">
+<p class="admonition-title">Access to the code</p>
+<p>The <code>cp-appraisal</code> repository is not public yet. A cleaned copy is being prepared for release, with private
+material and contained test texts removed. Until then, ask James Barnes for access.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Research code</p>
+<p>The code ran every experiment on this site, but it is not packaged as a tool. There is no one-command appraisal
+yet. Expect to read scripts, write small input files and edit configs. Test items and probes were written by AI
+agents under frozen protocols, not by independent experts.</p>
+</div>
+<p>To appraise a document of your own, go to the <a href="run-an-appraisal.html">runbook</a>. To reuse the agent roles, go to the
+<a href="prompts/index.html">agent prompts</a>. Terms such as LoRA, dose, control, panel and copy mask are defined in the
+<a href="../glossary.html">glossary</a>.</p>
+<h2 id="the-code-repository">The code repository<a class="headerlink" href="#the-code-repository" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/cpappraise/</code></td>
+<td>The Python package: training, scoring, statistics, the copy rule and the output privacy guard</td>
+</tr>
+<tr>
+<td><code>scripts/</code></td>
+<td>Command-line drivers: GPU lanes on RunPod, frontier-model runs on Tinker, and per-experiment input building and analysis</td>
+</tr>
+<tr>
+<td><code>configs/</code></td>
+<td>One JSON file per GPU lane, plus fine-tuning and container configs</td>
+</tr>
+<tr>
+<td><code>tests/</code></td>
+<td>Offline CPU tests with tiny random models, one file per module</td>
+</tr>
+<tr>
+<td><code>prompts/</code></td>
+<td>Frozen protocols that agents followed when writing probes, items and fact records</td>
+</tr>
+<tr>
+<td><code>planning/</code> and the root <code>*.md</code> files</td>
+<td>Brief, plans, pre-registrations, reports, adversary critiques, verifier reports and the decision log</td>
+</tr>
+<tr>
+<td><code>runs/</code></td>
+<td>Committed results (numbers and hashed ids only), lane logs and GPU spend ledgers</td>
+</tr>
+<tr>
+<td><code>data/manifests/</code>, <code>data/LICENSES.md</code></td>
+<td>Source lists, hashes, counts and licenses. Document text never goes into git</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-package-srccpappraise">The package: <code>src/cpappraise/</code><a class="headerlink" href="#the-package-srccpappraise" title="Permanent link">#</a></h3>
+<p>These modules matter most for new work. Most come from the later experiments (Phase 1c); <code>finetune.py</code>, <code>copyrule.py</code>
+and <code>privacy.py</code> date from Phase 1 and are used throughout.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>appraise_direct.py</code></td>
+<td>The direct method as a protocol. It fine-tunes a pinned open model on a document with LoRA, trains matched controls the same way, optionally runs comparables, and scores a panel in four tiers (recall, transfer, side, task). It reports net-of-control tier values with intervals, percentiles and a gain, inconclusive or loss status, in a bounded numbers-only report. Command line: <code>python -m cpappraise.appraise_direct screen</code>, <code>approve</code> and <code>run</code></td>
+</tr>
+<tr>
+<td><code>finetune.py</code></td>
+<td>The LoRA trainer behind every OLMo training run: OLMo-2, rank 16 and alpha 32 on every projection, AdamW, gradient clip 1.0, one sequence per step, optional gradient checkpointing for the 13B. Also probe and text scoring, and <code>select-controls</code>, which picks the Wikipedia control and side texts</td>
+</tr>
+<tr>
+<td><code>mainexp/</code></td>
+<td>The main experiment. <code>cites</code> finds the sentences of a later paper that cite a paper. <code>claims</code> finds key claims and makes the scripted counterfactual copies. <code>texts</code> and <code>build</code> make the block inputs for both models. <code>run</code> is the one-epoch train-and-score loop, with an OLMo backend and a Tinker backend. <code>stats</code> and <code>analysis</code> hold the pre-registered statistics</td>
+</tr>
+<tr>
+<td><code>nsbehavior/</code></td>
+<td>The Navier–Stokes behavior test: multiple-choice items and the verbatim-run filter (<code>items</code>), the run loop (<code>run</code>), judge-free scoring (<code>analysis</code>), and open-ended strategy answers for blind grading (<code>strategy</code>)</td>
+</tr>
+<tr>
+<td><code>ns_pilot.py</code></td>
+<td>The Navier–Stokes pilot: PDF text cleaning, panel windows, the copy mask mapped onto both models&rsquo; tokenizers, a Tinker backend with a spend guard, and the open-versus-frontier comparison</td>
+</tr>
+<tr>
+<td><code>anticipation/</code></td>
+<td>The anticipation pilot: arXiv HTML to passages (<code>text</code>), scripted counterfactuals (<code>cf</code>), blocks and masks (<code>build</code>), the GPU job (<code>run</code>) and the transfer-matrix statistics (<code>stats</code>)</td>
+</tr>
+<tr>
+<td><code>copyrule.py</code></td>
+<td>The copy rule. Its fallback version, CR3-B, is the copy mask in every later experiment: words copied from the training document earn no credit</td>
+</tr>
+<tr>
+<td><code>privacy.py</code></td>
+<td>The output guard. <code>write_json</code> refuses any string that is not a short, allow-listed label, so committed results hold only numbers, hashed ids and labels. <code>scan_for_leaks</code> checks outputs for 8-word runs of input text</td>
+</tr>
+</tbody>
+</table>
+<p>The machinery of Phases 1 and 1b, the cheap score and its planted test, is in the same package. It includes
+<code>engine.py</code> (per-token log-probabilities with key-value cache reuse), <code>jobs.py</code> (GPU scoring jobs and the pinned
+model list), <code>segment.py</code>, <code>score.py</code>, <code>payoff.py</code> and <code>quadrant.py</code>. Also there: <code>contamination.py</code> (training-data
+checks through infini-gram), <code>facts/</code>, <code>data/</code>, <code>plant/</code>, <code>authoring.py</code>, <code>evaluate.py</code>, <code>baselines.py</code>, <code>analysis/</code>,
+<code>gaming/</code> and <code>fabrication.py</code>. <code>appraise.py</code>, <code>guard.py</code> and <code>render.py</code> are the offline container entrypoint, with
+its Dockerfile in <code>docker/</code>.</p>
+<h3 id="scripts-scripts">Scripts: <code>scripts/</code><a class="headerlink" href="#scripts-scripts" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lane.py</code></td>
+<td>Runs one GPU lane on RunPod from a config. It creates a pod, pushes a committed git ref and the inputs, sets up the environment (<code>pod_setup.sh</code>), downloads pinned weights (<code>fetch_model.py</code>), runs each step under <code>nohup</code>, pulls the outputs and terminates the pod. Per step it supports a heartbeat watchdog, partial pulls and resume. It terminates the pod at twice the time estimate</td>
+</tr>
+<tr>
+<td><code>lane_patient.sh</code></td>
+<td>Retries a lane across several GPU types until one is free or a deadline passes (through <code>lane_retry.sh</code>). Use it for long lanes, launched detached</td>
+</tr>
+<tr>
+<td><code>runpod_pod.py</code></td>
+<td>Pod lifecycle by hand: <code>create</code>, <code>wait</code>, <code>ssh</code>, <code>push-code</code>, <code>push</code>, <code>pull</code>, <code>terminate</code>, <code>list</code>, <code>reap</code>, <code>cost</code>. Every pod is named <code>cpa-*</code> and logged to <code>runs/runpod_ledger.jsonl</code>. <code>cost</code> turns the ledger into dollars per stage. Caution: <code>reap</code> terminates every <code>cpa-*</code> pod in the account</td>
+</tr>
+<tr>
+<td><code>main_exp/</code></td>
+<td>The main experiment, in run order: <code>plan_fetch</code>, <code>fetch_html</code>, <code>select_items</code>, <code>plan_wave2</code>, <code>build_inputs</code>, <code>calibrate</code>, <code>make_lanes</code>, <code>cpu_smoke</code>, <code>tinker_run</code>, <code>analyze</code>, <code>posthoc</code>, <code>tables</code>, <code>leak_scan</code>, <code>ledger_lines</code>. <code>tinker_common</code> holds the Tinker helpers: service client, spend guard, checkpoint cleanup and billing</td>
+</tr>
+<tr>
+<td><code>ns_behavior/</code></td>
+<td><code>prep</code> (items, checks, model inputs), <code>tinker_nsb</code> (smoke test, dose calibration, learning-rate choice, main runs, cleanup, billing), <code>strategy_grade</code> (blind grading packets) and <code>analyze</code></td>
+</tr>
+<tr>
+<td><code>ns_pilot.py</code></td>
+<td>The Navier–Stokes pilot end to end: <code>prep</code>, <code>olmo</code> (the pod step), <code>tinker-smoke</code>, <code>tinker</code>, <code>analyze</code>, <code>tables</code>, <code>tinker-cleanup</code>, <code>tinker-billing</code></td>
+</tr>
+<tr>
+<td><code>appraise_direct.py</code></td>
+<td>Demo inputs on public stand-ins, and the offline red-team analysis of the direct protocol</td>
+</tr>
+<tr>
+<td><code>anticipation/</code></td>
+<td>Inputs, item selection and analysis for the anticipation pilot</td>
+</tr>
+</tbody>
+</table>
+<h3 id="configs-configs">Configs: <code>configs/</code><a class="headerlink" href="#configs-configs" title="Permanent link">#</a></h3>
+<ul>
+<li><code>lane_*.json</code>: one file per lane. Each names the GPU, disk size, git ref, time estimate, inputs, models and steps.
+  The names follow the stage:<ul>
+<li><code>lane_1c_mx_cal.json</code> and <code>lane_1c_mx_1.json</code> to <code>_3.json</code>: main experiment (calibration, then two blocks per lane);</li>
+<li><code>lane_1c_nsb_olmo13.json</code>: behavior test;</li>
+<li><code>lane_1c_ns_olmo13.json</code>: Navier–Stokes pilot;</li>
+<li><code>lane_1c_ant_*.json</code>: anticipation pilot;</li>
+<li><code>lane_1c_highlight.json</code>: highlighter;</li>
+<li><code>lane_ap_demo1b*.json</code>: direct-protocol demo;</li>
+<li><code>lane_h1b*</code> and <code>lane_h1bx*</code>: the Phase 1b learning test;</li>
+<li><code>lane_p*</code>: Phase 1.</li>
+</ul>
+</li>
+<li><code>finetune_pilot.json</code> and <code>finetune_pilot_13b.json</code>: the LoRA pilot grids of Phases 1 and 1b.</li>
+<li><code>appraise.yaml</code>: the config of the Phase 1 container entrypoint.</li>
+</ul>
+<h3 id="tests-tests">Tests: <code>tests/</code><a class="headerlink" href="#tests-tests" title="Permanent link">#</a></h3>
+<p>There is one test file per module. Tests run offline on CPU with tiny random models, so they cost nothing. Run
+<code>python -m pytest -q</code> before any paid run. At the main experiment the full suite stood at 848 passed, 3 skipped and
+1 expected failure. <code>scripts/main_exp/cpu_smoke.py</code> runs the whole main-experiment pipeline on tiny random models
+before any spend.</p>
+<h3 id="planning-documents-and-reports">Planning documents and reports<a class="headerlink" href="#planning-documents-and-reports" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Phases 1 and 1b.</strong> <code>planning/BRIEF.md</code> (the brief), <code>planning/PLAN.md</code> (v3, frozen by hash),
+  <code>PREREGISTRATION.md</code>, <code>REPORT.md</code> and <code>SUMMARY.md</code>; then <code>PREREG_1B.md</code>, <code>REPORT_1B.md</code> and <code>SUMMARY_1B.md</code>.</li>
+<li><strong>Phase 1c.</strong> In <code>planning/</code>: <code>HIGHLIGHTER_REPORT.md</code>, <code>APPRAISAL_PROTOCOL.md</code>, <code>ANTICIPATION_DESIGN.md</code>,
+  <code>PROCESS_VALUE_DESIGN.md</code>, <code>TRANSFER_DESIGN.md</code>, <code>ANTICIPATION_PILOT_PREREG.md</code> and <code>_REPORT.md</code>,
+  <code>NS_PILOT_REPORT.md</code>, <code>MAIN_EXPERIMENT_PREREG.md</code> and <code>_REPORT.md</code>, <code>NS_BEHAVIOR_PREREG.md</code> and <code>_REPORT.md</code>,
+  and <code>RELATED_WORK.md</code>.</li>
+<li><strong>Checks.</strong> <code>planning/critique_*.md</code> (adversaries), <code>planning/architect_response_r*.md</code>, and
+  <code>planning/VERIFIER_*.md</code> (replications and number checks).</li>
+<li><strong>Process.</strong> <code>DECISION_LOG.md</code> records every decision and deviation (D1 to D53, plus the judge&rsquo;s rulings J1
+  onward). <code>CHECKINS.md</code> holds the check-ins with James. <code>BUILD.md</code> sets the rules for builder agents, and
+  <code>planning/BUILD_QUESTIONS.md</code> holds their questions and the lead&rsquo;s answers.</li>
+</ul>
+<h3 id="results-runs">Results: <code>runs/</code><a class="headerlink" href="#results-runs" title="Permanent link">#</a></h3>
+<ul>
+<li><code>runs/phase1c/&lt;experiment&gt;/</code> holds <code>results.json</code> (every statistic), <code>effects.json</code> (per-item values under hashed
+  ids), <code>tables.md</code>, and the spend and session files. Phases 1 and 1b are under <code>runs/P*</code>, <code>runs/Q1*</code> and
+  <code>runs/phase1b/</code>.</li>
+<li><code>runs/runpod_ledger.jsonl</code> records every pod&rsquo;s creation and termination. Per-experiment ledgers, such as
+  <code>runs/phase1c/main_exp/runpod_ledger_1C-MX.jsonl</code>, were merged into it by the lead.</li>
+<li><code>runs/lanes/&lt;lane&gt;.jsonl</code> is each lane&rsquo;s event log.</li>
+<li>Not in git: pod state (<code>runs/pods/</code>), debug text (<code>runs/**/debug/</code>) and per-token arrays (<code>*.npz</code>). Raw downloads
+  (<code>data/raw/</code>), caches and built inputs (<code>data/interim/</code>) are gitignored too, because they hold document text.</li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
+<h3 id="python-and-the-uv-environment">Python and the uv environment<a class="headerlink" href="#python-and-the-uv-environment" title="Permanent link">#</a></h3>
+<p>The repository is a Python package, <code>cpappraise</code> (Python 3.11 or later; the study used 3.12). Dependencies are pinned
+in <code>requirements/base.txt</code> and <code>requirements/torch.txt</code>. Build the environment with uv, as <code>scripts/pod_setup.sh</code>
+does on a pod:</p>
+<pre><code>uv venv --python 3.12 .venv
+uv pip install --python .venv/Scripts/python.exe -r requirements/torch.txt
+uv pip install --python .venv/Scripts/python.exe -r requirements/base.txt
+uv pip install --python .venv/Scripts/python.exe -e . --no-deps
+uv pip install --python .venv/Scripts/python.exe tinker
+.venv/Scripts/python.exe -m pytest -q
+</code></pre>
+<p>On Linux or macOS the interpreter is <code>.venv/bin/python</code>. The Tinker client is needed only for the frontier-model
+runs. It is not in <code>requirements/base.txt</code>; the study used version 0.34.0.</p>
+<p>Local work needs only a CPU: building inputs, tests, analysis and smoke runs. All model training and scoring runs on
+RunPod or Tinker. If your documents are PDFs, you also need <code>pdftotext</code> (Poppler), which the Navier–Stokes code uses.</p>
+<h3 id="runpod-for-the-open-model">RunPod, for the open model<a class="headerlink" href="#runpod-for-the-open-model" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Account.</strong> You need a RunPod account with credit, your API key, and an SSH key pair for pod access.
+  <code>scripts/runpod_pod.py</code> creates each pod with your public key and connects over SSH.</li>
+<li><strong>GPU.</strong> A40-class cards were the most cost-effective. An A40 has 48 GB and cost $0.59 an hour in the secure cloud
+  at the time. OLMo-2-13B with LoRA and gradient checkpointing peaks at about 30–35 GB, so it fits. In the
+  anticipation pilot an A40 trained about 650 tokens per second and scored about 2,150. The same 13B pilot run took
+  81.5 s on an A40 and 33.3 s on an H200 at $5.29 an hour: about $0.013 against $0.049 per run (<code>DECISION_LOG.md</code>,
+  D47).</li>
+<li><strong>Which cards.</strong> Use 48 GB Ampere or Ada cards (A40, RTX A6000, L40S). Avoid Blackwell cards: a run on one failed
+  with &ldquo;no kernel image is available&rdquo;, most likely because the setup fell back to an older PyTorch build (D43).</li>
+<li><strong>Disk and start-up.</strong> Give each pod 120–150 GB of disk, because OLMo-2-13B&rsquo;s weights are 55 GB in fp32 on Hugging
+  Face. A pod takes about 4.5 minutes to boot. With environment setup and the weight download, plan on 10–20 minutes
+  of fixed cost per lane.</li>
+</ul>
+<h3 id="tinker-for-the-frontier-model">Tinker, for the frontier model<a class="headerlink" href="#tinker-for-the-frontier-model" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>What it is.</strong> Tinker, from Thinking Machines, trains LoRA adapters on hosted open-weight frontier models and
+  returns per-token log-probabilities, which the panel scoring needs.</li>
+<li><strong>Model.</strong> The study used DeepSeek-V3.1, which was trainable with a 32,768-token context. Kimi-K2.6 was also
+  trainable but was not used.</li>
+<li><strong>Price.</strong> The DeepSeek-V3.1 rate card at the time was $3.718 per million training tokens, $1.695 per million
+  prefill tokens and $4.215 per million sampled tokens.</li>
+<li><strong>Recipe.</strong> LoRA rank 16 on attention and MLP projections, with no unembedding adapter. Text is scored raw, with no
+  chat template. Panels are scored through sampling clients at the prefill rate, because forward passes on a
+  training client bill at the training rate.</li>
+<li><strong>Practicalities.</strong><ul>
+<li>Limit concurrency. The pilot&rsquo;s first run fired about 190 scoring requests at once and crashed the client; one
+panel at a time with 12 requests in flight fixed it.</li>
+<li>Tinker also throttles concurrent training clients.</li>
+<li>Billing rows lag by hours.</li>
+<li>Delete sampler checkpoints after use.</li>
+</ul>
+</li>
+</ul>
+<h3 id="api-keys">API keys<a class="headerlink" href="#api-keys" title="Permanent link">#</a></h3>
+<p>Both services need an API key. The scripts load each key into the running process from the environment or an env
+file, and they never print or log it. No key is stored in the repository. Point the loaders at your own env file:
+<code>scripts/runpod_env.py</code> for RunPod, and the Tinker helpers in <code>scripts/main_exp/tinker_common.py</code> and
+<code>scripts/ns_pilot.py</code>.</p>
+<h2 id="cost-per-experiment">Cost per experiment<a class="headerlink" href="#cost-per-experiment" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Experiment</th>
+<th>RunPod (open model)</th>
+<th>Tinker (frontier model)</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../briefings/01-phase1-cheap-score.html">Phase 1</a>: the cheap score at 1B</td>
+<td>$1.93</td>
+<td>none</td>
+<td><code>REPORT.md</code></td>
+</tr>
+<tr>
+<td>Phase 1b: <a href="../briefings/02-phase1b-gate-13b-32b.html">the 13B and 32B gate</a> and <a href="../briefings/03-h1b-cheap-score-vs-learning.html">the learning test</a></td>
+<td>$61.64</td>
+<td>none</td>
+<td><code>REPORT_1B.md</code></td>
+</tr>
+<tr>
+<td>Phase 1c pilot: <a href="../briefings/06-highlighter.html">highlighter</a></td>
+<td>$0.52</td>
+<td>none</td>
+<td><code>planning/HIGHLIGHTER_REPORT.md</code></td>
+</tr>
+<tr>
+<td>Phase 1c pilot: direct-appraisal protocol and its 1B demo</td>
+<td>$0.62</td>
+<td>none</td>
+<td><code>planning/APPRAISAL_PROTOCOL.md</code></td>
+</tr>
+<tr>
+<td>Phase 1c designs: anticipation, process data, transfer to frontier models</td>
+<td>none (no GPU)</td>
+<td>none</td>
+<td><code>planning/ANTICIPATION_DESIGN.md</code>, <code>PROCESS_VALUE_DESIGN.md</code>, <code>TRANSFER_DESIGN.md</code></td>
+</tr>
+<tr>
+<td>Phase 1c pilot: <a href="../briefings/05-anticipation-pilot.html">anticipation</a></td>
+<td>$2.81</td>
+<td>none</td>
+<td><code>planning/ANTICIPATION_PILOT_REPORT.md</code></td>
+</tr>
+<tr>
+<td>Phase 1c pilot: <a href="../briefings/04-ns-pilot.html">Navier–Stokes</a></td>
+<td>$0.82</td>
+<td>$13.97 (estimate)</td>
+<td><code>planning/NS_PILOT_REPORT.md</code></td>
+</tr>
+<tr>
+<td><a href="../briefings/07-main-experiment.html">Main experiment</a> (30 papers)</td>
+<td>$3.68</td>
+<td>$39.35 (estimate)</td>
+<td><code>planning/MAIN_EXPERIMENT_REPORT.md</code></td>
+</tr>
+<tr>
+<td><a href="../briefings/08-ns-behavior.html">Navier–Stokes behavior test</a></td>
+<td>$0.55</td>
+<td>$10.09 (estimate)</td>
+<td><code>planning/NS_BEHAVIOR_REPORT.md</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>RunPod figures</strong> are pod-hours times the hourly price, from the ledger.</li>
+<li><strong>Phase 1b</strong> includes $24.59 lost to a stopped A40 pilot and a failed H200 pilot whose outputs were never pulled
+  (D47, D48). That loss is why lanes now pull partial outputs while they run.</li>
+<li><strong>Tinker figures</strong> are estimates: token counts times the rate card above. Tinker&rsquo;s billing interface lagged by
+  hours and left the price field empty. In the behavior test, the token counts at Tinker&rsquo;s effective rates came to
+  $2.79 against $3.06 estimated for the same stages, because cached prefill is billed at a fifth of the full rate.
+  So the Tinker estimates are upper bounds.</li>
+<li><strong>The Navier–Stokes pilot&rsquo;s</strong> Tinker figure includes an aborted first run.</li>
+</ul>
+<h3 id="per-document">Per document<a class="headerlink" href="#per-document" title="Permanent link">#</a></h3>
+<p>In the main-experiment setup, an appraisal costs about $1 per document for both models together, and about $0.10
+for the open model alone.</p>
+<ul>
+<li><strong>Both models.</strong> Tinker&rsquo;s main runs cost $37.06 and the OLMo lanes $2.85, for 30 papers. That is $1.33 per paper,
+  with two counterfactual arms that a plain appraisal does not need.</li>
+<li><strong>Open model alone.</strong> $2.85 over 30 papers is about $0.10.</li>
+<li>Each paper had four arms: the paper, two altered copies and a control, with two seeds each. Nine papers also had
+  two increment arms.</li>
+</ul>
+<h2 id="how-the-work-was-run-with-ai-agents">How the work was run with AI agents<a class="headerlink" href="#how-the-work-was-run-with-ai-agents" title="Permanent link">#</a></h2>
+<p>The study ran over four days with Claude Code agents under James Barnes&rsquo;s direction. One lead session held the plan,
+wrote a prompt for each subagent, launched it, read its short report, merged its work and kept the decision log. The
+<a href="prompts/index.html">agent prompts</a> section publishes those prompts.</p>
+<h3 id="a-lead-session-and-subagents-in-git-worktrees">A lead session, and subagents in git worktrees<a class="headerlink" href="#a-lead-session-and-subagents-in-git-worktrees" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Prompts.</strong> Most prompts named:<ul>
+<li>the files to read first, and which one was the authority (the frozen pre-registration, <code>BUILD.md</code>);</li>
+<li>the files the agent owned;</li>
+<li>the deliverables, with exact paths;</li>
+<li>the hard rules;</li>
+<li>what to report back, in a few lines.</li>
+</ul>
+</li>
+<li><strong>Phase 1 builders</strong> worked in one shared working tree. <code>BUILD.md</code> gave each module one owner. Builders committed
+  explicit paths only, never <code>git add -A</code>, so no one committed another agent&rsquo;s files.</li>
+<li><strong>From Phase 1c on</strong>, each experiment ran in its own git worktree, on a branch named <code>worktree-agent-&lt;id&gt;</code>, so an
+  agent could not disturb the main checkout or another agent. Gitignored inputs were copied in, read-only.</li>
+<li><strong>Writers and extractors</strong> wrote JSON files and replied with one status line. The lead never read texts it did not
+  need.</li>
+<li><strong>Budgets.</strong> Every paid task had a hard spend cap. The agent estimated the cost before each paid stage and stopped
+  and reported rather than exceed the cap.</li>
+<li><strong>Refusals.</strong> When a writer agent or a safety classifier declined a task, the lead did not reword the prompt or
+  hand the batch to another agent. Once, the lead explained the safeguards and left the decision to the agent, which
+  resumed (D35). Otherwise the work stopped, and the affected test was recorded as failed or not run (D23, D38).</li>
+</ul>
+<h3 id="adversaries-and-a-verifier">Adversaries and a verifier<a class="headerlink" href="#adversaries-and-a-verifier" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Planning.</strong> Three adversaries attacked the Phase 1 plan in parallel: methodology (validity), gaming (inputs that
+  should score high without value) and efficiency (cost). None could read the others&rsquo; critiques. The architect
+  answered every point over two rounds. A judge who took no part in the debate ruled on what was left and froze the
+  pre-registration.</li>
+<li><strong>Reports.</strong> A methodology adversary reviewed the Phase 1 and Phase 1b reports for overclaiming before each phase
+  closed. On the Phase 1b report it found 7 blocking and 11 non-blocking issues, and the report was revised.</li>
+<li><strong>Verifier.</strong> A verifier re-derived the Phase 1 and Phase 1b results:<ul>
+<li>It reran each gate from a clean checkout, with its own bootstrap seed. Both replicated exactly.</li>
+<li>It recomputed every number in each report from the result files. Phase 1 had 3 mismatches among 449 checked
+values; Phase 1b had 12 among 791 rows, mostly cents of spend. None changed a verdict, and all were corrected.</li>
+</ul>
+</li>
+<li><strong>Not verified.</strong> The Phase 1c experiments, including the main experiment, had no separate verifier pass.</li>
+</ul>
+<h3 id="frozen-notes-before-scoring-kept-light">Frozen notes before scoring, kept light<a class="headerlink" href="#frozen-notes-before-scoring-kept-light" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Phase 1</strong> had a full pre-registration with staged code freezes: code for each stage was committed and tagged
+  before that stage scored data.</li>
+<li><strong>Phase 1b</strong> sealed the two scorers&rsquo; outputs by hash until both lanes had finished (<code>scripts/seal.py</code>).</li>
+<li><strong>Later experiments</strong> each froze one short note, committed with the analysis code before any test output existed.
+  This covers the anticipation pilot, the main experiment (commit <code>55e9ca4</code>) and the behavior test (commit
+  <code>bbcdff1</code>). James asked for this lighter form: one frozen note, no ceremony.</li>
+<li><strong>Anything decided after scoring</strong> is labeled exploratory or descriptive.</li>
+</ul>
+<h3 id="numbers-only-outputs">Numbers-only outputs<a class="headerlink" href="#numbers-only-outputs" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>The guard.</strong> Committed results pass through <code>privacy.write_json</code>: numbers, hashed ids and short labels only.</li>
+<li><strong>Text stays out of git.</strong> Document texts, probes, model answers and counterfactual copies stay in gitignored
+  folders. The main experiment ran an 8-word leak scan over everything it was about to commit.</li>
+<li><strong>Downloads are untrusted data.</strong> Each went in its own new directory and was read only by scripts run with
+  <code>python -I</code>.</li>
+<li><strong>Altered copies are contained.</strong> Copies of real papers with altered claims were made by deterministic scripts,
+  never by a writer model. They were never committed or published.</li>
+</ul>
+<h3 id="gpu-ledgers-detached-jobs-and-cleanup">GPU ledgers, detached jobs and cleanup<a class="headerlink" href="#gpu-ledgers-detached-jobs-and-cleanup" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Ledgers.</strong><ul>
+<li>Every pod is logged at creation and termination. Worktree agents wrote their own ledger file, and the lead
+merged it into the tracked ledger in a separate commit.</li>
+<li>On Tinker, a cumulative spend guard refuses any request that would pass the cap. A projection is checked
+before each stage, and session records allow billing to be reconciled later.</li>
+</ul>
+</li>
+<li><strong>Detached long jobs.</strong><ul>
+<li>Long lanes were launched detached, with <code>nohup bash scripts/lane_patient.sh ...</code>, because the agents&rsquo; own
+background tasks end after two hours.</li>
+<li>Each step pulls partial outputs every 10–20 minutes, a watchdog stops a step whose heartbeat stalls, and a
+retried step resumes from its pulled parts. These features came from losing an unpulled pilot (D48) and from
+finding that the watchdog had not been running during steps (D49).</li>
+</ul>
+</li>
+<li><strong>Cleanup.</strong><ul>
+<li>Every Tinker sampler checkpoint was deleted right after its scoring, and the listing was checked to be empty.</li>
+<li>Every pod was terminated.</li>
+<li>The direct protocol never writes trained weights to disk. At the end it zeroes the LoRA weights, or restores the
+original weights after full fine-tuning.</li>
+</ul>
+</li>
+<li><strong>Shared accounts.</strong> If your GPU account is shared, only touch pods you created.</li>
+</ul>
+<h3 id="merging">Merging<a class="headerlink" href="#merging" title="Permanent link">#</a></h3>
+<p>The lead merged each worktree branch into <code>master</code> with <code>git merge --no-ff</code>, so each experiment is one merge commit
+(for example &ldquo;Merge 1C-MX main experiment &hellip;&rdquo; and &ldquo;Merge 1C-NSB &hellip;&rdquo;). The lane&rsquo;s ledger lines went into the
+tracked ledger in their own commit.</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#who-this-is-for">Who this is for</a></li>
+<li><a href="#the-code-repository">The code repository</a><ul>
+<li><a href="#the-package-srccpappraise">The package: src/cpappraise/</a></li>
+<li><a href="#scripts-scripts">Scripts: scripts/</a></li>
+<li><a href="#configs-configs">Configs: configs/</a></li>
+<li><a href="#tests-tests">Tests: tests/</a></li>
+<li><a href="#planning-documents-and-reports">Planning documents and reports</a></li>
+<li><a href="#results-runs">Results: runs/</a></li>
+</ul>
+</li>
+<li><a href="#requirements">Requirements</a><ul>
+<li><a href="#python-and-the-uv-environment">Python and the uv environment</a></li>
+<li><a href="#runpod-for-the-open-model">RunPod, for the open model</a></li>
+<li><a href="#tinker-for-the-frontier-model">Tinker, for the frontier model</a></li>
+<li><a href="#api-keys">API keys</a></li>
+</ul>
+</li>
+<li><a href="#cost-per-experiment">Cost per experiment</a><ul>
+<li><a href="#per-document">Per document</a></li>
+</ul>
+</li>
+<li><a href="#how-the-work-was-run-with-ai-agents">How the work was run with AI agents</a><ul>
+<li><a href="#a-lead-session-and-subagents-in-git-worktrees">A lead session, and subagents in git worktrees</a></li>
+<li><a href="#adversaries-and-a-verifier">Adversaries and a verifier</a></li>
+<li><a href="#frozen-notes-before-scoring-kept-light">Frozen notes before scoring, kept light</a></li>
+<li><a href="#numbers-only-outputs">Numbers-only outputs</a></li>
+<li><a href="#gpu-ledgers-detached-jobs-and-cleanup">GPU ledgers, detached jobs and cleanup</a></li>
+<li><a href="#merging">Merging</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item and probe protocols · Measuring what a document teaches a model</title>
+<meta name="description" content="The frozen protocols that agents followed when writing recall and belief probes, multiple-choice behavior items, and fact records from abstracts.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html">Measuring what a document teaches a model</a>
+  <span class="tag">Research notes · draft for discussion</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" aria-label="Site">
+<details open><summary>Overview</summary><ul><li><a href="../../index.html">Home</a></li><li><a href="../../method.html">The method</a></li><li><a href="../../lessons.html">What we learned</a></li><li><a href="../../agenda.html">Research agenda</a></li><li><a href="../../faq.html">FAQ</a></li><li><a href="../../designs.html">Design memos</a></li><li><a href="../../related-work.html">Related work</a></li><li><a href="../../ethics.html">Data, consent and limits</a></li><li><a href="../../glossary.html">Glossary</a></li></ul></details>
+<details open><summary>Briefings</summary><ul><li><a href="../../briefings/index.html">All briefings</a></li><li><a href="../../briefings/01-phase1-cheap-score.html">Phase 1: the cheap score at 1B</a></li><li><a href="../../briefings/02-phase1b-gate-13b-32b.html">Phase 1b: the gate at 13B and 32B</a></li><li><a href="../../briefings/03-h1b-cheap-score-vs-learning.html">H1b: does the cheap score predict learning?</a></li><li><a href="../../briefings/04-ns-pilot.html">Navier–Stokes pilot</a></li><li><a href="../../briefings/05-anticipation-pilot.html">Anticipation pilot</a></li><li><a href="../../briefings/06-highlighter.html">Per-passage highlighter</a></li><li><a href="../../briefings/07-main-experiment.html">Main experiment: 30 papers</a></li><li><a href="../../briefings/08-ns-behavior.html">Navier–Stokes behavior</a></li><li><a href="../../briefings/09-sample-report.html">What a report could look like</a></li></ul></details>
+<details open><summary>Reproduce</summary><ul><li><a href="../../reproduce/index.html">Reproduce and extend</a></li><li><a href="../../reproduce/run-an-appraisal.html">Run an appraisal of a public document</a></li></ul></details>
+<details open><summary>Agent prompts</summary><ul><li><a href="../../reproduce/prompts/index.html">Catalog</a></li><li><a href="../../reproduce/prompts/planning-and-review.html">Planning and review prompts</a></li><li><a href="../../reproduce/prompts/phase1-builders.html">Phase 1 builder prompts</a></li><li><a href="../../reproduce/prompts/extraction.html">Extraction prompts</a></li><li><a href="../../reproduce/prompts/phase1b.html">Phase 1b builder prompts</a></li><li><a href="../../reproduce/prompts/pilots.html">Phase 1c pilot prompts</a></li><li><a href="../../reproduce/prompts/main-experiment.html">Main experiment prompt</a></li><li><a href="../../reproduce/prompts/ns-behavior.html">Navier–Stokes behavior test prompts</a></li><li><a href="../../reproduce/prompts/related-work.html">Related-work prompt</a></li><li><a class="active" href="../../reproduce/prompts/protocols.html">Item and probe protocols</a></li></ul></details>
+  </nav>
+  <main>
+    <article>
+      <h1>Item and probe protocols</h1>
+      <p class="summary">The frozen protocols that agents followed when writing recall and belief probes, multiple-choice behavior items, and fact records from abstracts.</p>
+<p>Some agents did not get a one-off prompt. They followed a frozen protocol file from the repository&rsquo;s <code>prompts/</code>
+folder, named in their prompt. Three are reproduced here, each frozen before it was used: the probe protocol before
+any main-experiment test output, the item protocol together with the behavior test&rsquo;s items, and the extraction
+protocol at Phase 1&rsquo;s first code freeze (FZ1). The only edit is to one command in the item protocol: its absolute path
+is replaced with <code>&lt;repo&gt;</code>, and a wrapper that lowered CPU priority on the study machine is dropped.</p>
+<h3 id="recall-and-belief-probes-main-experiment">Recall and belief probes (main experiment)<a class="headerlink" href="#recall-and-belief-probes-main-experiment" title="Permanent link">#</a></h3>
+<p><strong>Used by</strong> the main experiment&rsquo;s probe writers, Claude subagents that each took a list of papers. <strong>Produced</strong> 360 recall probes (12 per paper) and the paraphrased belief probes. The build added 481 verbatim cloze probes cut from the claim sentences, for 746 belief probes in all. Writers never wrote false statements: the altered values came from a script. To reuse it with the direct protocol, note that route A needs at least 16 recall probes per document by default (see the <a href="../run-an-appraisal.html">runbook</a>). File: <code>prompts/main_exp_probe_protocol.md</code>.</p>
+<pre><code class="language-text"># Main experiment (1C-MX): probe-writing protocol (frozen before any test output)
+
+Writers are Claude Code subagents of the 1C-MX agent. Each writer gets a list of items. For every item it reads two
+local files (gitignored; never quote them anywhere else):
+
+- `data/interim/main_exp/a_text/&lt;item_id&gt;.txt`: the paper A exactly as it is trained (title, abstract, sections);
+- `data/interim/main_exp/claims_for_writers/&lt;item_id&gt;.json`: A's key claims, each with its id, kind (number or
+  comparative), the true string as written in A, its counterfactual string (made by a script) and the A sentence it
+  comes from.
+
+and writes one file `data/interim/main_exp/probes_written/&lt;item_id&gt;.json`:
+
+```json
+{&quot;item_id&quot;: &quot;...&quot;, &quot;recall&quot;: [{&quot;prompt&quot;: &quot;...&quot;, &quot;answer&quot;: &quot;...&quot;, &quot;kind&quot;: &quot;verbatim&quot;}, ...],
+ &quot;belief&quot;: [{&quot;claim&quot;: &quot;k0&quot;, &quot;prompt&quot;: &quot;...&quot;}, ...]}
+```
+
+Containment: the probes are questions about real, public papers. They contain no invented claims. The
+counterfactual strings are produced by a deterministic script and attached to the belief probes by the build; writers
+never write false statements about the papers. All files stay in gitignored `data/interim/`.
+
+## Recall probes (12 per item)
+
+- 5 **verbatim**: the prompt is an exact span of A's text (at least 8 words, copied character for character) that is
+  immediately followed in A by the answer.
+- 7 **paraphrase**: the prompt is in the writer's own words and names the paper (&quot;In the paper '&lt;title&gt;', ...&quot; or
+  &quot;According to &lt;title&gt;, ...&quot;); it ends right before the answer.
+- Answers: 1 to 5 words that occur in A (case may differ); specific to this paper (the name of its method, model,
+  dataset, benchmark, component, coined term, or a key qualitative finding); not guessable from general knowledge.
+- Never: numbers, years or digits in the answer; comparative words (higher, lower, better, worse, larger, smaller,
+  faster, slower, stronger, weaker, best, worst, increase(s), decrease(s), improve(s), degrade(s), outperform(s),
+  underperform(s), superior, inferior, advantage(s), ...) in the answer; the same answer or prompt twice; two probes
+  about the same fact.
+- Spread the probes over the paper (abstract, introduction, method, results, discussion).
+- The prompt ends without a trailing space; the answer has no leading space (the build adds one).
+
+## Belief probes (paraphrased cloze, one per key claim, at most 10 per item)
+
+For each key claim listed (take the claims in the listed order, skipping any you cannot phrase well, at most 10):
+
+- Write a prompt in your own words that names the paper (&quot;According to &lt;title&gt;, ...&quot;, &quot;In &lt;title&gt;, the authors
+  report that ...&quot;) and ends right before the claim's string, so that the true string and the counterfactual string
+  are both grammatical continuations. Do not copy the anchor sentence.
+- Number claims: the prompt ends right before the number (&quot;... reaches a success rate of&quot;); the true string is the
+  number exactly as listed (the build appends it, and the counterfactual one, with a leading space).
+- Comparative claims: the prompt ends right before the comparative word (&quot;... the proposed tokenizer trains&quot;), so that
+  &quot;faster&quot; and &quot;slower&quot; (or the listed pair) both fit.
+- One prompt per claim id; no prompt may contain the claim's true or counterfactual string.
+</code></pre>
+<h3 id="multiple-choice-behavior-items-behavior-test">Multiple-choice behavior items (behavior test)<a class="headerlink" href="#multiple-choice-behavior-items-behavior-test" title="Permanent link">#</a></h3>
+<p><strong>Used by</strong> the behavior test&rsquo;s item writers, who never saw the Navier–Stokes paper itself. A separate agent and a CPU helper checked every item. <strong>Produced</strong> the frozen item sets: 70 next-step, 30 result, 30 computation and 24 unrelated-math items. File: <code>prompts/ns_behavior_item_protocol.md</code>.</p>
+<pre><code class="language-text"># NS behaviour experiment (1C-NSB): item-writing protocol
+
+Frozen with the items (planning/NS_BEHAVIOR_PREREG.md). Item texts never leave the gitignored
+`data/interim/ns_behavior/`.
+
+## Purpose
+
+We train a language model on one paper (the &quot;artifact&quot;: a 2026 paper constructing finite-time blow-up for a fluid
+equation) and ask whether that changes how the model approaches *related* problems. You write multiple-choice items
+from related papers that apply the same kind of blow-up construction to other equations (Euler, Boussinesq, IPM),
+from standard PDE knowledge, and from an unrelated area of mathematics (control items). Each item is scored without a
+judge: the model's log-probability of each option given the context. A good item is one where a reader who
+understands the paper's method would prefer the true option, while a reader who does not could reasonably prefer a
+distractor.
+
+## Hard rules
+
+1. **Sources.** Read only the files you are assigned under `data/interim/ns_behavior/sources/` and your own knowledge
+   of standard textbooks. Never open anything under `data/interim/ns_pilot/`, `data/raw/`, `runs/`, or any file whose
+   name contains `openai`, `navier`, `ns_pilot`, `inputs.json`, `docs.jsonl` or `probes.json`. The artifact must not
+   influence the items.
+2. **No text leaves the gitignored area.** Write items only to the JSON file you are told
+   (`data/interim/ns_behavior/items/raw/&lt;writer&gt;.json`). Do not paste paper text into commit messages, reports or any
+   other file.
+3. **Do not run models or spend money.** Use only the checker helper below (CPU, local).
+
+## Item format (one JSON list per writer)
+
+```json
+{
+  &quot;id&quot;: &quot;abe-ns-01&quot;,
+  &quot;set&quot;: &quot;next_step&quot;,
+  &quot;source&quot;: &quot;ab_euler&quot;,
+  &quot;decision_type&quot;: &quot;amplification&quot;,
+  &quot;anchor&quot;: &quot;exact text copied from the source that ends right before the step&quot;,
+  &quot;options&quot;: [&quot;...&quot;, &quot;...&quot;, &quot;...&quot;, &quot;...&quot;],
+  &quot;answer&quot;: 2,
+  &quot;rationale&quot;: &quot;why the true option is the paper's step; for each distractor, why it is sensible but not what the paper does&quot;,
+  &quot;evidence&quot;: &quot;a short quote (&lt;= 25 words) from the text right after the anchor that confirms the true option&quot;
+}
+```
+
+- `set`: `next_step`, `result`, `computation` or `unrelated`.
+- `decision_type` (next_step and unrelated): `ansatz`, `scaling`, `amplification`, `estimate_next`, `closing`,
+  `parameters`, `other`. For `result`: `quantity`, `rate`, `regularity`, `conclusion`, `other`. For `computation`:
+  `scaling_exponent`, `critical_space`, `conserved_quantity`, `blowup_rate`, `criterion`, `other`.
+- `answer`: the index (0-3) of the true option. Spread the true index roughly evenly over 0-3 across your items.
+- `computation` items have a `question` field instead of `source`/`anchor` (see below) and a `verify` field naming
+  the verification script.
+
+## The context the model sees
+
+For paper items (`next_step`, `result`, `unrelated`) the model sees the source text that **ends at the end of your
+anchor**, trimmed from the left at a sentence start to at most 600 OLMo tokens (about 1,500-2,500 characters of
+mathematical text). Then one space, then the option. So:
+
+- The anchor must be copied **exactly** from the source file (whitespace differences are tolerated; nothing else),
+  must occur **exactly once** in it, and must end at a sentence end (&quot;.&quot;, &quot;:&quot; or the end of a displayed formula line)
+  immediately before the paper takes the step.
+- Each option is written as the paper's **next sentence (or two)** at that point, so that context + &quot; &quot; + option
+  reads as a continuation of the paper.
+- Everything the model needs must lie in the ~600 tokens before the anchor end. Choose decision points where the
+  preceding text sets up the choice. Run the helper with `--verbose` to see exactly where the context starts.
+- The context must **not give the answer away**: no sentence in the context announces or states the step (e.g. a
+  roadmap sentence &quot;we next estimate the pressure Hessian&quot; right before), and for `result` items the result must not
+  appear earlier in the context (e.g. in an abstract that falls inside the window). Prefer decision points inside the
+  body of the construction or proof, not in the abstract or introduction.
+
+## Next-step items (`next_step`, and `unrelated` from the control papers)
+
+A decision point is a place in a construction or proof where the authors make a substantive choice, such as:
+the ansatz or form of the next correction; the scaling or the choice of scales and parameters; the mechanism that
+amplifies or transfers growth; what to estimate or control next; how to close the argument (bootstrap, induction,
+contradiction, summability, limiting argument).
+
+- **True option**: a faithful, condensed statement (15-35 OLMo tokens; hard limit 40) of what the paper actually does
+  next, in the paper's own notation and register. You may reuse the paper's next sentence if it is short and
+  self-contained; otherwise condense it. It must be specific enough to be distinguishable from the distractors.
+- **Three distractors**: steps a competent analyst could sensibly take at that point, but which the paper does **not**
+  take. They must be mathematically sensible (not false on their face, not contradicting the context), not equivalent
+  to the true step, not implied by it, and not something the paper also does at that point. Good families:
+  a different ansatz (self-similar profile, Fourier or normal-mode truncation, explicit shear or vortex profile);
+  a different mechanism (vortex stretching by an imposed strain, compactness and rescaling to a limit profile, energy
+  concentration, a monotonicity or virial argument); a different estimate (energy or Sobolev estimate with Gronwall,
+  maximum principle, Beale-Kato-Majda type criterion, a Lyapunov functional); different parameter or scale choices;
+  a different way to close (contradiction, fixed point, continuation criterion, compactness).
+- **Matching**: all four options in the same notation, register and level of specificity, with lengths within about
+  25% of each other (characters). Do not let the true option be systematically the longest, the most hedged or the
+  most technical. Avoid tell-tale words that only distractors use (&quot;simply&quot;, &quot;trivially&quot;, &quot;never&quot;, &quot;always&quot;) and
+  avoid copying long verbatim stretches of the source into the true option while the distractors are paraphrases;
+  write all four in the same style.
+- Write formulas the way they appear in the source text (it is flattened PDF text: `∥∇u(t)∥L∞`, `R3`, `τ1/2`). Use
+  the same flattened style in all four options.
+
+## Result items (`result`)
+
+The context ends right before the paper states a result or quantity it establishes (a lemma, proposition or theorem
+statement, a computed rate, exponent, bound, regularity class, or conclusion). The true option is that result; the
+distractors are alternative results of the same type and form (a different exponent or rate, a different regularity
+class, a different quantity blowing up or staying bounded, a different conclusion) that a reader could find
+plausible. Same matching rules.
+
+## Computation items (`computation`)
+
+Checkable multiple-choice questions on PDEs related to the artifact's area (incompressible Navier-Stokes and Euler,
+Boussinesq, SQG and generalized SQG, IPM, MHD, Burgers, nonlinear heat or Schrodinger equations as model problems):
+scaling exponents of self-similar ansatze, critical Lebesgue and Sobolev spaces, scaling of forces and of conserved
+or controlling quantities, blow-up rates of model equations, Prodi-Serrin and Beale-Kato-Majda type criteria, energy
+identities. Draw on standard texts (Majda-Bertozzi, Lemarie-Rieusset, Robinson-Rodrigo-Sadowski, Tao's notes), not
+on any 2026 paper.
+
+- `question`: a self-contained question ending with a newline and `Answer:`, e.g.
+  `&quot;Question: For ... which exponent ... ?\nAnswer:&quot;`.
+- `options`: four short answers of the same form (all exponents, or all spaces, or all expressions); exactly one
+  correct; the others are the typical mistakes (wrong dimension, wrong sign, off by one power).
+- `verify`: the file name of a Python script in `data/interim/ns_behavior/items/verify/` that derives the answer key
+  from first principles (SymPy where possible: solve for the exponents that make the equation invariant, compute the
+  critical index, differentiate the energy) and asserts that it equals `options[answer]`, and that no distractor also
+  satisfies the check. Run every script; report any that fail.
+
+## The checker helper
+
+```
+&lt;repo&gt;/.venv/Scripts/python.exe -I scripts/ns_behavior/prep.py check-file data/interim/ns_behavior/items/raw/&lt;writer&gt;.json --verbose
+```
+
+(run from the worktree root). It reports, per item: schema errors, whether the anchor is unique, the context the
+model will see (token count, start and end), and option token counts and length differences. Fix every ERROR. Treat
+the notes (length differences, true option longest) as things to fix unless there is a good reason.
+
+## Deliverable
+
+Your JSON file, passing the helper with no errors, and a short report: counts per set and decision type, the true
+index distribution, and any items you are unsure about.
+</code></pre>
+<h3 id="fact-records-from-abstracts-phases-1-and-1b">Fact records from abstracts (Phases 1 and 1b)<a class="headerlink" href="#fact-records-from-abstracts-phases-1-and-1b" title="Permanent link">#</a></h3>
+<p><strong>Used by</strong> the extractors on the <a href="extraction.html">extraction page</a>. <strong>Produced</strong> the fact records behind the planted test items: 245 records from 801 abstracts in Phase 1. It is a good template for any task where an agent must pull structured, quote-checked facts out of text. File: <code>prompts/extraction.md</code>.</p>
+<pre><code class="language-text"># Extraction template: abstracts to fact records
+
+Batch type `extraction`. Role: extractor (a Claude Code subagent; the model name is logged per batch). Frozen at FZ1.
+Used in F1 for the novel-fact pool (arXiv v1 2026-04-01 to 2026-10-15), the K-spec pool (arXiv 2019–2022) and, only at
+fallback step 3, Wikipedia 2026 science items (PREREGISTRATION §4; PLAN v3 §3.4).
+
+You turn each input item (one arXiv abstract, or one Wikipedia event line) into at most one **fact record**: a single
+numeric finding with its context, in the exact format below, or you skip the item with a reason. Code validates every
+record against the shared schema (`src/cpappraise/facts/schema.py`) and checks every quote against the input text, so
+follow the format literally.
+
+## Input
+Read the batch file named in your instructions. It is JSON with `batch_id`, `output_path`, `pool` (`novel`, `kspec` or
+`wikipedia`) and `items`. Each item has `item_id`, `fact_id` (use it unchanged), `source` (`arxiv` or `wikipedia`),
+`arxiv_id` (null for Wikipedia), `v1_date`, `domain` (null for Wikipedia items), `title` and `text` (the abstract, or the
+Wikipedia line).
+
+## Choosing the finding
+Pick the single most central **numeric finding** of the item that meets every rule below. If none does, skip the item.
+1. **A result, not a design choice.** A measured or computed outcome (a level, rate, share, count, duration, size,
+   score or ratio that the work found). Never a sample size, number of simulations, parameter setting, threshold or
+   anything else the authors chose.
+2. **One number.** The value is one plain number, written in the text, with any attached symbols (&quot;73%&quot;, &quot;0.85&quot;,
+   &quot;1,234&quot;, &quot;2.5-fold&quot;, &quot;$3.2&quot;, &quot;-0.42&quot;). Ranges (&quot;3 to 5&quot;), &quot;±&quot; pairs, products, scientific notation and values
+   written only in words are not eligible.
+3. **A slot type.**
+   - `quantity`: an unbounded positive amount. `unit` is its unit or the counted noun (&quot;days&quot;, &quot;km&quot;, &quot;patients&quot;,
+     &quot;species&quot;, &quot;fold&quot;, &quot;USD&quot;), never a percent.
+   - `proportion`: a bounded value. `unit` is `&quot;%&quot;` if it is written as a percentage (0 &lt; v &lt; 100), `&quot;fraction&quot;` if it is
+     written as a number in (0, 1) (shares, AUROC, accuracy, F1, R², probabilities), or `&quot;r&quot;` for a correlation
+     coefficient in (−1, 1).
+4. **Not directional or signed.** Skip a value that is stated as a change in some direction (&quot;a 12% decrease&quot;,
+   &quot;reduced by 3.1 points&quot;, &quot;increased by 40%&quot;, &quot;+3.1&quot;, &quot;improved from 0.71 to 0.85&quot;), unless the text also states the
+   resulting level as one number, which you may use instead (&quot;reached an accuracy of 0.85&quot;). A negative value is allowed
+   only for a correlation (`unit` = `&quot;r&quot;`).
+5. **At least four same-story details.** The text must support four or more further details of the same work (setting,
+   subject, method, data, secondary observations) that do not state, bound or imply the value, and do not state what
+   follows from it.
+
+## The record
+All text fields are single lines, in plain English, without LaTeX (write symbols in words or Unicode).
+- `fact_id`: copied from the item. `arxiv_id`, `v1_date`: copied from the item.
+- `domain`: copied from the item. Wikipedia items only: choose the closest of `R-BOE` (ecology, evolution, population
+  biology, statistics), `R-OWW` (molecular and cell biology, biochemistry, genomics), `R-UCH` (chemistry, soft matter,
+  materials) and `R-EAF` (economics, society, policy, computing and society); skip with `no_domain` if none fits.
+- `entity`: the specific subject of the finding, a short noun phrase copied exactly from the text (a species, compound,
+  method, model, site, cohort, mission, dataset ...). It must be specific enough to identify this work (not &quot;the model&quot;
+  or &quot;participants&quot;) and must not contain the value.
+- `slot_value_text`: the value copied exactly from the text (character for character), as in rule 2. No separate unit
+  word.
+- `slot_value`: the number in `slot_value_text`, as a JSON number (73 for &quot;73%&quot;, 1234 for &quot;1,234&quot;, 0.85 for &quot;0.85&quot;).
+- `unit` and `slot_type`: as in rule 3.
+- `f_sentence`: one sentence, in your own words, that states the finding on its own: the entity, what was measured, and
+  `slot_value_text` exactly once, followed by its unit where one applies. One sentence by the study's splitter: end it
+  with a period and put no other sentence-ending punctuation inside.
+- `cloze_prefix`: the beginning of a sentence that describes the entity and states the claim up to the value, so that
+  the value comes next (&quot;Kidneys from gene-edited pigs kept two baboons alive for up to&quot;). It must not contain the value
+  or any other number that gives it away, and it must not end with a space.
+- `consequence`: one line saying what follows from the finding, as the text states it, or its most direct implication
+  that the text supports. Nothing speculative.
+- `details`: four to six details of the same work (rule 5), each one sentence in your own words, standalone (no &quot;this&quot;
+  or &quot;it&quot; pointing to another sentence), distinct from each other and from `f_sentence`, and each free of the value.
+- `new_name`: `true` if the work introduces a new name (a newly described species, compound, method, model, mission or
+  dataset name), else `false`. `name_term`: that new name, copied exactly from the text, if `new_name` is true; else
+  `null`.
+
+## Support quotes (checked by code)
+For every record, also give exact quotes from the item's `text`, copied character for character:
+- `slot_quote`: 6–20 consecutive words that contain `slot_value_text`; it must occur exactly once in `text`;
+- `detail_quotes`: one quote per detail, in the same order, 3–30 words each, each occurring exactly once in `text`, that
+  supports that detail.
+Code also checks that `entity` and `name_term` occur in the item's `title` or `text` exactly as written.
+
+## Skips
+Skip an item, with one reason, when no finding meets the rules: `no_numeric_finding`, `design_value_only`,
+`directional_or_signed`, `two_numbers`, `fewer_than_4_details`, `no_domain` (Wikipedia only), `unreadable` (for
+example, mostly formulas). Do not lower the bar to avoid a skip; most items are expected to be skipped.
+
+## Output schema
+```json
+{
+  &quot;schema&quot;: &quot;cpa.authoring.output/1&quot;,
+  &quot;batch_id&quot;: &quot;&lt;copied from the batch file&gt;&quot;,
+  &quot;model&quot;: &quot;&lt;the model name you are running as&gt;&quot;,
+  &quot;items&quot;: [
+    {
+      &quot;item_id&quot;: &quot;&lt;copied&gt;&quot;,
+      &quot;status&quot;: &quot;record&quot;,
+      &quot;record&quot;: {
+        &quot;fact_id&quot;: &quot;&lt;copied&gt;&quot;, &quot;arxiv_id&quot;: &quot;&lt;copied&gt;&quot;, &quot;domain&quot;: &quot;&lt;copied or chosen&gt;&quot;, &quot;v1_date&quot;: &quot;&lt;copied&gt;&quot;,
+        &quot;entity&quot;: &quot;&lt;exact noun phrase&gt;&quot;, &quot;slot_value_text&quot;: &quot;&lt;exact value&gt;&quot;, &quot;slot_value&quot;: 0.0,
+        &quot;unit&quot;: &quot;&lt;unit&gt;&quot;, &quot;slot_type&quot;: &quot;quantity&quot;, &quot;f_sentence&quot;: &quot;&lt;one sentence&gt;&quot;,
+        &quot;cloze_prefix&quot;: &quot;&lt;prefix&gt;&quot;, &quot;consequence&quot;: &quot;&lt;one line&gt;&quot;,
+        &quot;details&quot;: [&quot;&lt;detail&gt;&quot;, &quot;&lt;detail&gt;&quot;, &quot;&lt;detail&gt;&quot;, &quot;&lt;detail&gt;&quot;],
+        &quot;new_name&quot;: false, &quot;name_term&quot;: null
+      },
+      &quot;support&quot;: {&quot;slot_quote&quot;: &quot;&lt;exact quote&gt;&quot;, &quot;detail_quotes&quot;: [&quot;&lt;q1&gt;&quot;, &quot;&lt;q2&gt;&quot;, &quot;&lt;q3&gt;&quot;, &quot;&lt;q4&gt;&quot;]}
+    },
+    {&quot;item_id&quot;: &quot;&lt;copied&gt;&quot;, &quot;status&quot;: &quot;skip&quot;, &quot;skip_reason&quot;: &quot;directional_or_signed&quot;}
+  ]
+}
+```
+The record must have exactly these fifteen keys, no others.
+
+## Check your file before you reply (if you can run shell commands)
+From the repository root, run one of:
+- PowerShell: `$env:PYTHONPATH = &quot;src&quot;; .venv\Scripts\python.exe -m cpappraise.authoring selfcheck &lt;batch file&gt; &lt;output file&gt;`
+- bash: `PYTHONPATH=src .venv/Scripts/python.exe -m cpappraise.authoring selfcheck &lt;batch file&gt; &lt;output file&gt;`
+
+It prints one line per item: `OK`, `SKIP` or failure codes (it never prints texts). Fix every failure and run it again,
+at most four times in all. A failing record may be fixed or turned into a skip, never forced through by changing the
+facts.
+
+## Output and reply
+- Write one JSON file to the batch's `output_path` (UTF-8, LF line endings) with exactly the schema above: one entry per
+  input item, in input order, with `item_id` copied exactly. Do not create or edit any other file.
+- Reply with one status line and nothing else: `OK &lt;batch_id&gt; &lt;records&gt; records &lt;skips&gt; skips`, or
+  `FAIL &lt;batch_id&gt; &lt;short reason&gt;`. Never put any of the texts in your reply.
+</code></pre>
+<h2 id="not-shown">Not shown<a class="headerlink" href="#not-shown" title="Permanent link">#</a></h2>
+<ul>
+<li><code>prompts/judge.md</code> and <code>prompts/adjudicate.md</code>: checks and span annotation for planted passages.</li>
+<li><code>prompts/write_*.md</code> and <code>prompts/rewrite_d4.md</code>: the writer templates for planted passages.</li>
+<li><code>prompts/qwen/</code>: generation prompts for the gaming and fabrication tests, which never ran.</li>
+<li><code>prompts/pi2k_facts.md</code>: a list of well-known facts for a fabrication test that did not run.</li>
+</ul>
+<p>The first two groups concern planted passages written in real authors&rsquo; voices, and are withheld for that reason (see
+the <a href="index.html">catalog</a>).</p>
+    </article>
+    <footer>
+      <p>James Barnes, with AI agents (Claude) under his direction. Draft research notes, October 2026. Numbers come
+      from the study's reports; where these notes and a report disagree, the report wins.</p>
+    </footer>
+  </main>
+  <aside class="toc" aria-label="On this page">
+<div class="toc">
+<ul>
+<li><a href="#recall-and-belief-probes-main-experiment">Recall and belief probes (main experiment)</a></li>
+<li><a href="#multiple-choice-behavior-items-behavior-test">Multiple-choice behavior items (behavior test)</a></li>
+<li><a href="#fact-records-from-abstracts-phases-1-and-1b">Fact records from abstracts (Phases 1 and 1b)</a></li>
+<li><a href="#not-shown">Not shown</a></li>
+</ul>
+</div>
+
+  </aside>
+</div>
+</body>
+</html>
